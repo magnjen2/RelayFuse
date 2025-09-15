@@ -1,0 +1,93 @@
+﻿<UserControl x:Class="RelaySettingToolView.MergingToolView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:views="clr-namespace:RelaySettingToolView">
+
+    <UserControl.Resources>
+        <!-- Dark Theme Brushes -->
+        <SolidColorBrush x:Key="WindowBackground" Color="#1E1E1E"/>
+        <SolidColorBrush x:Key="TopBarBrush" Color="#2D2D30"/>
+        <SolidColorBrush x:Key="ButtonBrush" Color="#3C3C3C"/>
+        <SolidColorBrush x:Key="BorderBrush" Color="#444444"/>
+        <SolidColorBrush x:Key="TextBrush" Color="#D4D4D4"/>
+        <SolidColorBrush x:Key="ComboBoxBackground" Color="#252526"/>
+        <SolidColorBrush x:Key="ComboBoxForeground" Color="#D4D4D4"/>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="40" />
+            <!-- Control buttons column -->
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- TEAX Section Content -->
+        <Border Grid.Column="0"
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="2" Margin="0,0,8,0"
+                CornerRadius="8"
+                Background="{StaticResource WindowBackground}">
+            <views:TeaxSectionView />
+        </Border>
+
+        <!-- Control Buttons Column -->
+        <Border Grid.Column="1"
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0" Margin="0,0,0,0"
+                CornerRadius="0"
+                Background="{StaticResource WindowBackground}"
+                VerticalAlignment="Top">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0" >
+                <Button Margin="0,4" Padding="2,6"
+                        Background="{StaticResource ButtonBrush}" Foreground="{StaticResource TextBrush}"
+                        ToolTip="Undo">
+                    <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE7A7;" Margin="0,0,0,0" FontSize="16"/>
+                </Button>
+                <Button Margin="0,4" Padding="2,6"
+                        Background="{StaticResource ButtonBrush}" Foreground="{StaticResource TextBrush}"
+                        ToolTip="Take teax setting">
+                    <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE0AD;&#xE8C8;" Margin="0,0,0,0" FontSize="14"/>
+                </Button>
+                <Button Margin="0,4" Padding="2,6"
+                        Background="{StaticResource ButtonBrush}" Foreground="{StaticResource TextBrush}"
+                        ToolTip="Take relay plan setting">
+                    <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE8C8; &#xE72B;" Margin="0,0,0,0" FontSize="14"/>
+                </Button>
+                <Button Margin="0,4" Padding="2,6"
+                        Background="{StaticResource ButtonBrush}" Foreground="{StaticResource TextBrush}"
+                        ToolTip="Mark as ok">
+                    <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE73E;" Margin="0,0,0,0" FontSize="16"/>
+                </Button>
+                <Button Margin="0,4" Padding="2,6"
+                        Background="{StaticResource ButtonBrush}" Foreground="{StaticResource TextBrush}"
+                        ToolTip="Go to previous setting">
+                    <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE74A;" Margin="0,0,0,0" FontSize="14"/>
+                </Button>
+                <Button Margin="0,4" Padding="2,6"
+                        Background="{StaticResource ButtonBrush}" Foreground="{StaticResource TextBrush}"
+                        ToolTip="Go to next setting">
+                    <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE74B;" Margin="0,0,0,0" FontSize="14"/>
+                </Button>
+                <Button Margin="0,4" Padding="2,6"
+                        Background="{StaticResource ButtonBrush}" Foreground="{StaticResource TextBrush}"
+                        ToolTip="Go to previous functionblock">
+                    <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE892;" Margin="0,0,0,0" FontSize="16"/>
+                </Button>
+                <Button Margin="0,4" Padding="2,6"
+                        Background="{StaticResource ButtonBrush}" Foreground="{StaticResource TextBrush}"
+                        ToolTip="Go to next functionblock">
+                    <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE893;" Margin="0,0,0,0" FontSize="16"/>
+                </Button>
+            </StackPanel>
+        </Border>
+
+        <!-- PDF Section Content -->
+        <Border Grid.Column="2"
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="2" Margin="8,0,0,0"
+                CornerRadius="8"
+                Background="{StaticResource WindowBackground}">
+            <views:PdfSectionView />
+        </Border>
+    </Grid>
+</UserControl>

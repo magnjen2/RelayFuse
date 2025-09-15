@@ -1,0 +1,54 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35919.96
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RelaySettingToolView", "RelaySettingToolView.csproj", "{D56F6422-FB14-4BC9-80D1-5C3DC1D155B5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
+	ProjectSection(SolutionItems) = preProject
+		Timebruk.txt = Timebruk.txt
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PdfGraphicService", "..\PdfGraphicService\PdfGraphicService.csproj", "{26C5E124-84B2-47F9-BCA8-E465E1BEFA0E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RelaySettingToolModel", "..\RelaySettingToolModel\RelaySettingToolModel.csproj", "{CDB972E4-E25C-4FD5-8A1E-69345B12F5C8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RelaySettingToolViewModel", "..\RelaySettingToolViewModel\RelaySettingToolViewModel.csproj", "{48AAEA16-CC9A-47D5-B83F-4CED867BBD96}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sip5Library", "..\..\..\..\..\..\..\UserData\z004cjxk\OneDrive - Siemens AG\Dokumenter\GitHub\BDD_2_1\Sip5Library\Sip5Library.csproj", "{4FFAEFC6-0B8E-617E-F25D-FB781E6FB141}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D56F6422-FB14-4BC9-80D1-5C3DC1D155B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D56F6422-FB14-4BC9-80D1-5C3DC1D155B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D56F6422-FB14-4BC9-80D1-5C3DC1D155B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D56F6422-FB14-4BC9-80D1-5C3DC1D155B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{26C5E124-84B2-47F9-BCA8-E465E1BEFA0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{26C5E124-84B2-47F9-BCA8-E465E1BEFA0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{26C5E124-84B2-47F9-BCA8-E465E1BEFA0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{26C5E124-84B2-47F9-BCA8-E465E1BEFA0E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CDB972E4-E25C-4FD5-8A1E-69345B12F5C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CDB972E4-E25C-4FD5-8A1E-69345B12F5C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CDB972E4-E25C-4FD5-8A1E-69345B12F5C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CDB972E4-E25C-4FD5-8A1E-69345B12F5C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{48AAEA16-CC9A-47D5-B83F-4CED867BBD96}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{48AAEA16-CC9A-47D5-B83F-4CED867BBD96}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{48AAEA16-CC9A-47D5-B83F-4CED867BBD96}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{48AAEA16-CC9A-47D5-B83F-4CED867BBD96}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4FFAEFC6-0B8E-617E-F25D-FB781E6FB141}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4FFAEFC6-0B8E-617E-F25D-FB781E6FB141}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4FFAEFC6-0B8E-617E-F25D-FB781E6FB141}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4FFAEFC6-0B8E-617E-F25D-FB781E6FB141}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {00F441E5-BD60-41BB-B8E4-CB31D33D998F}
+	EndGlobalSection
+EndGlobal
