@@ -18,11 +18,12 @@ namespace RelaySettingToolView
     /// <summary>
     /// Interaction logic for PdfSectionView.xaml
     /// </summary>
-    public partial class PdfSectionView : UserControl
+    public partial class RPSideView : UserControl
     {
-        public PdfSectionView()
+        public RPSideView()
         {
             InitializeComponent();
+
         }
     }
 }

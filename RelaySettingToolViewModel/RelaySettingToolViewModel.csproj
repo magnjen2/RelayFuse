@@ -9,9 +9,13 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="TeaxToExcelExportService.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <ProjectReference Include="..\..\..\..\..\..\..\UserData\z004cjxk\OneDrive - Siemens AG\Dokumenter\GitHub\BDD_2_1\Sip5Library\Sip5Library.csproj" />
-	  <ProjectReference Include="..\PdfGraphicService\PdfGraphicService.csproj" />
-	  <ProjectReference Include="..\RelaySettingToolModel\RelaySettingToolModel.csproj" />
+	  <ProjectReference Include="..\RelayFuseInterfaces\RelayFuseInterfaces.csproj" />
+	  <ProjectReference Include="..\RelayPlanDocumentModel\RelayPlanDocumentModel.csproj" />
 	</ItemGroup>
 
    </Project>

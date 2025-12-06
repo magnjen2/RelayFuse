@@ -11,9 +11,9 @@ using UglyToad.PdfPig.Tokenization;
 
 namespace RelaySettingToolModel
 {
-    public class PdfDocumentModel
+    public class PlanDocumentModel
     {
-        public PdfDocumentModel(string filePath)
+        public PlanDocumentModel(string filePath)
         {
             Document = PdfDocument.Open(filePath);
 

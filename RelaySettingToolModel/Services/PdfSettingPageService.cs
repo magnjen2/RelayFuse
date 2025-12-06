@@ -70,12 +70,12 @@ namespace RelaySettingToolModel
                 var settingPath = settingPaths[i];
 
                 // Find the y-coordinate of the display name (first word in settingPath)
-                double yTop = settingPaths[i].First().BoundingBox.Bottom;
-                double yBottom;
+                double? yTop = settingPaths[i].FirstOrDefault()?.BoundingBox.Bottom;
+                double? yBottom;
                 // Find the next display name y-coordinate (or set to 0 if last)
                 if (i + 1 < settingPaths.Count)
                 {
-                    yBottom = settingPaths[i + 1].First().BoundingBox.Top;
+                    yBottom = settingPaths[i + 1].FirstOrDefault()?.BoundingBox.Top;
                 }
                 else
                 {
@@ -97,7 +97,7 @@ namespace RelaySettingToolModel
 
                     double settingTop = displaynames[j].Last().BoundingBox.Top + 0.5;
 
-                    double settingBottom;
+                    double? settingBottom;
 
                     if (j + 1 < displaynames.Count)
                     {

@@ -1,5 +1,5 @@
 ﻿using Microsoft.Win32;
-using RelaySettingToolModel;
+//using RelaySettingToolModel;
 using Sip5Library.Sip5TeaxModels;
 using System;
 using System.Collections.Generic;
@@ -11,13 +11,32 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Xml.Linq;
+using RelayPlanDocumentModel;
+using ClosedXML.Excel;
+using System.Collections.ObjectModel;
 
 namespace RelaySettingToolViewModel
 {
-    public class RelaySettingMainViewModel : INotifyPropertyChanged
+    public class MainWindowViewModel : ViewModelBase
     {
+        public MainWindowViewModel()
+        {
+            OpenTeaxFileCommand = new RelayCommand(OpenTeaxFile);
+            OpenRPlanFileCommand = new RelayCommand(OpenRPlanFile, CanOpenRPlanFile);
+            ExportToExcelCommand = new RelayCommand(ExportToExcel, CanOpenRPlanFile);
+            SelectedHwUnit = HwUnits?.FirstOrDefault();
+
+            MergingToolViewModel.TeaxSideViewModel = new TeaxSideViewModel();
+            MergingToolViewModel.RPSideViewModel = new RPSideViewModel();
+
+        }
+
+
         public ICommand OpenTeaxFileCommand { get; }
-        public ICommand OpenPdfFileCommand { get; }
+        public ICommand OpenRPlanFileCommand { get; }
+        public ICommand ExportToExcelCommand { get; }
+
+
 
         private bool _isTeaxFileLoaded;
         public bool IsTeaxFileLoaded
@@ -29,6 +48,20 @@ namespace RelaySettingToolViewModel
                 {
                     _isTeaxFileLoaded = value;
                     OnPropertyChanged(nameof(IsTeaxFileLoaded));
+                    CommandManager.InvalidateRequerySuggested();
+                }
+            }
+        }
+        private bool _isRelayPlanLoaded;
+        public bool IsRelayPlanLoaded
+        {
+            get => _isRelayPlanLoaded;
+            private set
+            {
+                if (_isRelayPlanLoaded != value)
+                {
+                    _isRelayPlanLoaded = value;
+                    OnPropertyChanged(nameof(IsRelayPlanLoaded));
                     CommandManager.InvalidateRequerySuggested();
                 }
             }
@@ -62,9 +95,6 @@ namespace RelaySettingToolViewModel
         }
 
         private IHWUnitNode? _selectedHwUnit;
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
         public IHWUnitNode? SelectedHwUnit
         {
             get => _selectedHwUnit;
@@ -74,10 +104,21 @@ namespace RelaySettingToolViewModel
                 {
                     _selectedHwUnit = value;
                     OnPropertyChanged(nameof(SelectedHwUnit));
+                    OnHwUnitSelected();
                 }
             }
         }
-
+        private void OnHwUnitSelected()
+        {
+            if (!(_selectedHwUnit is PlaceholderHWUnitNode) && _selectedHwUnit != null)
+            {
+                var applicationNode = TreeRootBase?.GetApplicationNode(_selectedHwUnit);
+                if (applicationNode != null)
+                {
+                    MergingToolViewModel.TeaxSideViewModel = new TeaxSideViewModel(applicationNode);
+                }
+            }
+        }
 
 
         private MergingToolViewModel _mergingToolViewModel = new MergingToolViewModel();
@@ -94,17 +135,6 @@ namespace RelaySettingToolViewModel
             }
         }
 
-
-
-
-        public RelaySettingMainViewModel()
-        {
-            OpenTeaxFileCommand = new RelayCommand(OpenTeaxFile);
-            OpenPdfFileCommand = new RelayCommand(OpenPdfFile, CanOpenPdfFile);
-
-            SelectedHwUnit = HwUnits?.FirstOrDefault();
-
-        }
 
         private void OpenTeaxFile(object? parameter)
         {
@@ -127,7 +157,7 @@ namespace RelaySettingToolViewModel
             XElement rootNode = XElement.Load(filePath);
             TreeRootBase = new TeaxTreeRootBase(rootNode);
 
-            var _hwUnitList =  new List<IHWUnitNode>() { new PlaceholderHWUnitNode() };
+            var _hwUnitList = new List<IHWUnitNode>() { new PlaceholderHWUnitNode() };
             _hwUnitList.AddRange(TreeRootBase.HardwareContainer.HardwareUnits);
             HwUnits = _hwUnitList;
             SelectedHwUnit = HwUnits?.FirstOrDefault();
@@ -135,75 +165,83 @@ namespace RelaySettingToolViewModel
 
         }
 
-        private bool CanOpenPdfFile(object? parameter)
+        private bool CanOpenRPlanFile(object? parameter)
         {
-            return IsTeaxFileLoaded && !(SelectedHwUnit is PlaceholderHWUnitNode);
+            return true;
         }
-
-        private void OpenPdfFile(object? parameter)
+        private void OpenRPlanFile(object? parameter)
         {
             var openFileDialog = new OpenFileDialog
             {
-                Filter = "PDF files (*.pdf)|*.pdf"
+                Filter = "Excel files (*.xlsx;*.xls)|*.xlsx;*.xls"
             };
             if (openFileDialog.ShowDialog() == true)
             {
-                string pdfPath = openFileDialog.FileName;
-                ProcessPdf(pdfPath);
+                string filePath = openFileDialog.FileName;
+                string extension = Path.GetExtension(filePath).ToLowerInvariant();
+
+                if (extension == ".xlsx" || extension == ".xls")
+                {
+                    Document = new ExcelDocument(filePath);
+                }
+                IsRelayPlanLoaded = true;
             }
         }
-
-        private void ProcessPdf(string pdfPath)
+        private ExcelDocument? _document;
+        public ExcelDocument? Document
         {
-            var pdfService = new PdfDocumentService();
-            var documentModel = new PdfDocumentModel(pdfPath);
-
-            documentModel.Devices  = pdfService.GetDevicesFromToc(documentModel.Document.GetPage(1));
-
-
-            List<string> allFgNames = TreeRootBase!
-                .GetApplicationNodeByHwUnitId(SelectedHwUnit!.Id)
-                .FunctionalApplication
-                .FunctionGroupNodes
-                .Select(x=>x.DisplayName).ToList();
-
-            pdfService.ProcessPdfDocument(documentModel, allFgNames);
-        }
-
-
-
-
-
-
-
-
-
-
-
-
-        protected void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-        public class RelayCommand : ICommand
-        {
-            private readonly Action<object?> _execute;
-            private readonly Func<object?, bool>? _canExecute;
-
-            public RelayCommand(Action<object?> execute, Func<object?, bool>? canExecute = null)
+            get => _document;
+            set
             {
-                _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-                _canExecute = canExecute;
-            }
-
-            public bool CanExecute(object? parameter) => _canExecute?.Invoke(parameter) ?? true;
-            public void Execute(object? parameter) => _execute(parameter);
-            public event EventHandler? CanExecuteChanged
-            {
-                add { CommandManager.RequerySuggested += value; }
-                remove { CommandManager.RequerySuggested -= value; }
+                if (_document != value)
+                {
+                    _document = value;
+                    DeviceTypeRows = Document?.DeviceTypeRows;
+                    OnPropertyChanged(nameof(Document));
+                }
             }
         }
+
+        private List<IGrouping<string, IXLRow>>? _deviceTypeRows;
+        public List<IGrouping<string, IXLRow>>? DeviceTypeRows
+        {
+            get => _deviceTypeRows;
+            set
+            {
+                _deviceTypeRows = value;
+                OnPropertyChanged(nameof(DeviceTypeRows));
+            }
+        }
+        private IGrouping<string, IXLRow>? _selectedDeviceType;
+        public IGrouping<string, IXLRow>? SelectedDeviceType
+        {
+            get => _selectedDeviceType;
+            set
+            {
+                if (_selectedDeviceType != value)
+                {
+                    _selectedDeviceType = value;
+                    OnPropertyChanged(nameof(SelectedDeviceType));
+                    OnDeviceTypeSelected();
+                }
+            }
+        }
+        private void OnDeviceTypeSelected()
+        {
+            var deviceInExcel = _document?.GetDevice(SelectedDeviceType!);
+            MergingToolViewModel.RPSideViewModel = new RPSideViewModel(deviceInExcel!);
+        }
+
+
+        // Add the private method for Excel export
+        private void ExportToExcel(object? parameter)
+        {
+            //    var exportService = new TeaxToExcelExportService();
+            //    var excelDocumentModel = exportService.MakeExcelModel(TreeRootBase!, SelectedHwUnit!, 1);
+            //    MergingToolViewModel.RPSectionViewModel = new RPSectionViewModel(excelDocumentModel);
+
+        }
+
 
         private class PlaceholderHWUnitNode : IHWUnitNode
         {

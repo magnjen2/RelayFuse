@@ -29,7 +29,8 @@
                 BorderBrush="{StaticResource BorderBrush}" BorderThickness="2" Margin="0,0,8,0"
                 CornerRadius="8"
                 Background="{StaticResource WindowBackground}">
-            <views:TeaxSectionView />
+
+            <views:TeaxSideView DataContext="{Binding TeaxSideViewModel}" />
         </Border>
 
         <!-- Control Buttons Column -->
@@ -39,6 +40,12 @@
                 Background="{StaticResource WindowBackground}"
                 VerticalAlignment="Top">
             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0" >
+                <Button Margin="0,4" Padding="2,6"
+                        Background="{StaticResource ButtonBrush}" Foreground="{StaticResource TextBrush}"
+                        ToolTip="Start compare"
+                        Command="{Binding StartCompareCommand}">
+                    <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#x21BB;" Margin="0,0,0,0" FontSize="16"/>
+                </Button>
                 <Button Margin="0,4" Padding="2,6"
                         Background="{StaticResource ButtonBrush}" Foreground="{StaticResource TextBrush}"
                         ToolTip="Undo">
@@ -87,7 +94,8 @@
                 BorderBrush="{StaticResource BorderBrush}" BorderThickness="2" Margin="8,0,0,0"
                 CornerRadius="8"
                 Background="{StaticResource WindowBackground}">
-            <views:PdfSectionView />
+            <views:RPSideView DataContext="{Binding RPSideViewModel}" />
+
         </Border>
     </Grid>
 </UserControl>

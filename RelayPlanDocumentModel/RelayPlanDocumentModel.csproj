@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="ExcelTemplates\RelayPlanTemplate.xlsx" />
+    <None Remove="ExcelTemplates\Sip5Types.csv" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="ExcelTemplates\RelayPlanTemplate.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ExcelTemplates\Sip5Types.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.105.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RelayFuseInterfaces\RelayFuseInterfaces.csproj" />
+  </ItemGroup>
+
+</Project>

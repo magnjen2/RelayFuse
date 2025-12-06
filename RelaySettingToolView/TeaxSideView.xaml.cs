@@ -18,9 +18,9 @@ namespace RelaySettingToolView
     /// <summary>
     /// Interaction logic for TeaxSectionView.xaml
     /// </summary>
-    public partial class TeaxSectionView : UserControl
+    public partial class TeaxSideView : UserControl
     {
-        public TeaxSectionView()
+        public TeaxSideView()
         {
             InitializeComponent();
         }

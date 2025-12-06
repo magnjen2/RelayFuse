@@ -22,7 +22,7 @@ namespace RelaySettingToolModel
     {
         public PdfDocumentService() { }
 
-        public void ProcessPdfDocument(PdfDocumentModel documentModel, List<string> targetFgNames)
+        public void ProcessPdfDocument(PlanDocumentModel documentModel, List<string> targetFgNames)
         {
             // Create device list from table of contents on first page
             List<PdfDeviceModel> pdfDevices = GetDevicesFromToc(documentModel.Document.GetPage(1));

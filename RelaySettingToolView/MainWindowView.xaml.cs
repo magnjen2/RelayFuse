@@ -18,12 +18,12 @@ namespace RelaySettingToolView
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class RelaySettingMainView : Window
+    public partial class MainWindowView : Window
     {
-        public RelaySettingMainView()
+        public MainWindowView()
         {
             InitializeComponent();
-            DataContext = new RelaySettingMainViewModel();
+            DataContext = new MainWindowViewModel();
         }
 
         private void Minimize_Click(object sender, RoutedEventArgs e)
