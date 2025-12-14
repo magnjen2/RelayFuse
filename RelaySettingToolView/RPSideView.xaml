@@ -20,7 +20,7 @@
     <Grid>
 
 
-        <Border CornerRadius="15" Background="{StaticResource WindowBackground}" Padding="20" Margin="50">
+        <Border CornerRadius="15" Background="{StaticResource WindowBackground}" Padding="0" Margin="0">
 
             <views:DataGridView DataContext="{Binding DataGridVM}"/>
 

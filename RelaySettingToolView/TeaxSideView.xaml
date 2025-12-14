@@ -18,7 +18,7 @@
     </UserControl.Resources>
 
     <Grid>
-        <Grid>
+        <!--<Grid>
             <Button x:Name="SaveTextFileButton"
                     Width="35"
                     Height="35"
@@ -33,8 +33,8 @@
                            VerticalAlignment="Center"
                            HorizontalAlignment="Center"/>
             </Button>
-        </Grid>
-        <Border CornerRadius="15" Background="{StaticResource WindowBackground}" Padding="20" Margin="50">
+        </Grid>-->
+        <Border CornerRadius="15" Background="{StaticResource WindowBackground}" Padding="0" Margin="0">
 
             <views:DataGridView DataContext="{Binding DataGridVM}" />
 

@@ -56,29 +56,68 @@ namespace RelaySettingToolViewModel
         }
         private void StartCompare()
         {
+            if (TeaxSideViewModel!.DataGridVM == null || RPSideViewModel!.DataGridVM == null) return;
+
+            TeaxSideViewModel!.DataGridVM!.ClearGrid();
+            RPSideViewModel!.DataGridVM!.ClearGrid();
+
             CompareService.MatchAllHmiTables(TeaxSideViewModel!, RPSideViewModel!);
 
             var matchedTeaxTables = TeaxSideViewModel!.HmiTableVMs
-                .Where(vm => vm.HmiTable != null && vm.HmiTable.MatchingTable != null)
+                .Where(vm => vm.HmiTable != null && vm.MatchingHmiTableVM != null)
                 .ToList();
             var notMatchedTeaxTables = TeaxSideViewModel!.HmiTableVMs
-                .Where(vm => vm.HmiTable != null && vm.HmiTable.MatchingTable == null)
+                .Where(vm => vm.HmiTable != null && vm.MatchingHmiTableVM == null)
                 .ToList();
             var notMatchedRPTables = RPSideViewModel!.HmiTableVMs
-                .Where(vm => vm.HmiTable != null && vm.HmiTable.MatchingTable == null)
+                .Where(vm => vm.HmiTable != null && vm.MatchingHmiTableVM == null)
                 .ToList();
 
 
 
             foreach(var table in matchedTeaxTables)
             {
-                TeaxSideViewModel.DataGridVM!.AddHmiTableRow(table, Colors.LightGreen);
-                RPSideViewModel.DataGridVM!.AddHmiTableRow(table.MatchingHmiTableVM!, Colors.LightGreen);
+                TeaxSideViewModel.DataGridVM!.AddHmiTableRow(table, Colors.Green);
+                RPSideViewModel.DataGridVM!.AddHmiTableRow(table.MatchingHmiTableVM!, Colors.Green);
 
+                foreach(var setting in table.SettingViewModels)
+                {
+                    var matchedSetting = setting.MatchingSettingVM;
+                    if(matchedSetting != null)
+                    {
+                        TeaxSideViewModel.DataGridVM!.AddSettingRow(setting, Colors.Green);
+                        RPSideViewModel.DataGridVM!.AddSettingRow(matchedSetting, Colors.Green);
+                    }
+                    if(matchedSetting == null)
+                    {
+                        TeaxSideViewModel.DataGridVM!.AddSettingRow(setting, Colors.LightYellow);
+                        RPSideViewModel.DataGridVM!.AddEmptyRow();
+                    }
+                }
 
             }
 
-            // TODO: Implement loading matched tables into DataGridVMs
+            foreach(var table in notMatchedTeaxTables)
+            {
+                TeaxSideViewModel.DataGridVM!.AddHmiTableRow(table, Colors.LightCoral);
+                RPSideViewModel.DataGridVM!.AddEmptyRow();
+                foreach(var setting in table.SettingViewModels)
+                {
+                    TeaxSideViewModel.DataGridVM!.AddSettingRow(setting, Colors.LightYellow);
+                    RPSideViewModel.DataGridVM!.AddEmptyRow();
+                }
+            }
+            foreach(var table in notMatchedRPTables)
+            {
+                TeaxSideViewModel.DataGridVM!.AddEmptyRow();
+                RPSideViewModel.DataGridVM!.AddHmiTableRow(table, Colors.LightCoral);
+                foreach(var setting in table.SettingViewModels)
+                {
+                    TeaxSideViewModel.DataGridVM!.AddEmptyRow();
+                    RPSideViewModel.DataGridVM!.AddSettingRow(setting, Colors.LightYellow);
+                }
+            }
+
         }
 
 

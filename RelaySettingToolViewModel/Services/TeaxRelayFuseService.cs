@@ -92,7 +92,6 @@ namespace RelaySettingToolViewModel
             if (!string.IsNullOrEmpty(settingNode.HmiTableName))
                 segments.Add(settingNode.HmiTableName);
 
-            // Reverse to get correct order (root to leaf)
             segments.Reverse();
 
             return segments.ToArray();

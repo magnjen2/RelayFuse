@@ -9,7 +9,7 @@ using RelayFuseInterfaces;
 
 namespace RelaySettingToolViewModel
 {
-    public interface IHmiTableViewModel : IDataGridItem
+    public interface IHmiTableViewModel : IDataGridItemBase
     {
         IHmiTable HmiTable { get; set; }
         List<IRelaySettingViewModel> SettingViewModels { get; set; }
@@ -17,7 +17,7 @@ namespace RelaySettingToolViewModel
         bool[] MatchConfidence { get; set; }
     }
 
-    public class HmiTableViewModel : IHmiTableViewModel
+    public class HmiTableViewModel : DataGridItemBase, IHmiTableViewModel
     {
         public HmiTableViewModel(IHmiTable hmiTable)
         {
@@ -32,7 +32,6 @@ namespace RelaySettingToolViewModel
         public IHmiTable HmiTable { get; set; }
         public List<IRelaySettingViewModel> SettingViewModels { get; set; } = new List<IRelaySettingViewModel>();
         public List<IRelaySettingViewModel> MatchedSettingVMs { get; set; } = new List<IRelaySettingViewModel>();
-        public Color Color { get; set; }
 
         public IHmiTableViewModel? MatchingHmiTableVM { get; set; }
 

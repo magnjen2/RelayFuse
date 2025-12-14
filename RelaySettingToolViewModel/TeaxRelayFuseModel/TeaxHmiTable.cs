@@ -23,7 +23,6 @@ namespace RelaySettingToolViewModel
         public string? UniqueId => Settings.FirstOrDefault()?.UniqueId;
         public string? DigsiPathString => DigsiPathList != null ? string.Join(", ", DigsiPathList) : null;
 
-        public IHmiTable MatchingTable { get; set; }
     }
 
 }

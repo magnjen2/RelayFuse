@@ -136,6 +136,44 @@
                 </Border>
 
             </Grid>
+
+            <!-- Spinner Busy Indicator -->
+            <Grid x:Name="SpinnerOverlay"
+                  Visibility="Collapsed"
+                  Background="#80FFFFFF"
+                  HorizontalAlignment="Stretch"
+                  VerticalAlignment="Stretch"
+                  Panel.ZIndex="9999">
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsBusy}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
+                <Viewbox Width="96" Height="96" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Canvas Width="64" Height="64">
+                        <Ellipse Width="64" Height="64" StrokeThickness="8" StrokeDashArray="4 12" Stroke="#FF0078D7" Fill="Transparent">
+                            <Ellipse.RenderTransform>
+                                <RotateTransform x:Name="SpinnerRotate" CenterX="32" CenterY="32"/>
+                            </Ellipse.RenderTransform>
+                            <Ellipse.Triggers>
+                                <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                                    <BeginStoryboard>
+                                        <Storyboard RepeatBehavior="Forever">
+                                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
+                                                 From="0" To="360" Duration="0:0:1"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Ellipse.Triggers>
+                        </Ellipse>
+                    </Canvas>
+                </Viewbox>
+            </Grid>
+
         </Grid>
     </Border>
 </Window>

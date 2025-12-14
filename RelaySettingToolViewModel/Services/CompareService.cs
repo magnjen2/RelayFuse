@@ -1,4 +1,5 @@
-﻿using RelayFuseInterfaces;
+﻿using DocumentFormat.OpenXml.Spreadsheet;
+using RelayFuseInterfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,32 +14,33 @@ namespace RelaySettingToolViewModel
         {
             // Create working sets of IHmiTableViewModel where MatchingTable is null
             var teaxTables = teaxSideVM.HmiTableVMs
-                .Where(vm => vm.HmiTable != null && vm.HmiTable.MatchingTable == null)
+                .Where(vm => vm.HmiTable != null && vm.MatchingHmiTableVM == null)
                 .ToList();
 
             var rpTables = rpSideVM.HmiTableVMs
-                .Where(vm => vm.HmiTable != null && vm.HmiTable.MatchingTable == null)
+                .Where(vm => vm.HmiTable != null && vm.MatchingHmiTableVM == null)
                 .ToList();
 
             // Use HashSet for efficient removal
             var teaxSet = new HashSet<IHmiTableViewModel>(teaxTables);
             var rpSet = new HashSet<IHmiTableViewModel>(rpTables);
 
-            foreach (var teaxHmiTable in teaxTables.ToList())
+            foreach (var teaxHmiTable in teaxTables)
             {
                 if (!teaxSet.Contains(teaxHmiTable))
                     continue;
 
-
-
-                foreach (var rpHmiTable in rpSet)
+                foreach (var rpHmiTable in rpTables)
                 {
+                    if (!rpSet.Contains(rpHmiTable))
+                        continue;
+
                     // TryMatchTable returns a confidence score (assumed signature: double TryMatchTable(IHmiTable a, IHmiTable b))
                     int[] matchConfidence = CompareService.TryMatchTable(teaxHmiTable, rpHmiTable);
                     if (matchConfidence[0] > 0 && matchConfidence[1] > 0)
                     {
-                        teaxHmiTable.HmiTable.MatchingTable = rpHmiTable.HmiTable;
-                        rpHmiTable.HmiTable.MatchingTable = teaxHmiTable.HmiTable;
+                        teaxHmiTable.MatchingHmiTableVM = rpHmiTable;
+                        rpHmiTable.MatchingHmiTableVM = teaxHmiTable;
 
                         teaxSet.Remove(teaxHmiTable);
                         rpSet.Remove(rpHmiTable);
@@ -48,26 +50,66 @@ namespace RelaySettingToolViewModel
                 }
 
             }
+            Console.WriteLine("Debug");
         }
 
 
 
-        public static int[] TryMatchTable(IHmiTableViewModel hmiTable1, IHmiTableViewModel hmiTable2)
+        // Helper to clean DigsiPath string in according to requirements
+        private static string CleanStatnettSpecificPath(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return string.Empty;
+
+            string result = input.TrimStart();
+
+            // Remove "Group " at the start
+            if (result.StartsWith("Group "))
+                result = result.Substring(6).TrimStart();
+
+            // Remove everything from the first '(' (including the parenthesis and everything after)
+            int parenIndex = result.IndexOf('(');
+            if (parenIndex >= 0)
+                result = result.Substring(0, parenIndex);
+
+            return result;
+        }
+
+        public static int[] TryMatchTable(IHmiTableViewModel hmiTableTeax, IHmiTableViewModel hmiTableRp)
         {
             int[] matchConfidence = new int[2] { 0, 0 };
 
-            if (CompareStringArray(hmiTable1.HmiTable.DigsiPathList, hmiTable2.HmiTable.DigsiPathList)) // if Digsi paths match between teax and relay plan
+            var digsiPathTeax = hmiTableTeax.HmiTable.DigsiPathString;
+            var digsiPathRp = hmiTableRp.HmiTable.DigsiPathString;
+
+            if (digsiPathTeax == null || digsiPathTeax.Length == 0 || digsiPathRp == null || digsiPathRp.Length == 0)
+                return matchConfidence;
+
+            // Clean digsiPathRp using the helper
+            digsiPathRp = CleanStatnettSpecificPath(digsiPathRp);
+
+            //if (digsiPathTeax.Contains("Z1") && digsiPathRp.Contains("Z1"))
+            //{
+            //    Console.WriteLine("Debug");
+            //}
+
+            var matchResult = MatchString(digsiPathTeax, digsiPathRp);
+            if (matchResult.isMatch && !matchResult.isExact)
+            {
+                Console.WriteLine("Debug");
+            }
+
+            if (matchResult.isMatch) // if Digsi paths match between teax and relay plan
             {
                 matchConfidence[0] = 1; // Matching digsi path is indicated
 
-
-                foreach (var setting1 in hmiTable1.SettingViewModels)
+                foreach (var setting1 in hmiTableTeax.SettingViewModels)
                 {
-                    foreach (var setting2 in hmiTable2.SettingViewModels)
+                    foreach (var setting2 in hmiTableRp.SettingViewModels)
                     {
                         var settingMatch = TryMatchSetting(setting1, setting2); // Trying to match settings within the hmi tables
 
-                        matchConfidence[1] += settingMatch[0] + settingMatch[1]; // Increasing match confidence based on settings matched
+                        matchConfidence[1] += settingMatch; // Increasing match confidence based on settings matched
                     }
                 }
             }
@@ -78,60 +120,45 @@ namespace RelaySettingToolViewModel
 
 
 
-        public static int[] TryMatchSetting(IRelaySettingViewModel setting1, IRelaySettingViewModel setting2)
+        public static int TryMatchSetting(IRelaySettingViewModel setting1, IRelaySettingViewModel setting2)
         {
-            int[] isMatch = new int[2] { 0, 0 };
+            int score = 0;
 
-            if (setting1.RelaySetting.UniqueId == setting2.RelaySetting.UniqueId)
-            {
-                isMatch[0] = 1;
-            }
-            if (setting1.RelaySetting.DisplayName == setting2.RelaySetting.DisplayName)
-            {
-                isMatch[1] = 1;
-            }
-            setting1.MatchingSettingVM = setting2;
-            setting2.MatchingSettingVM = setting1;
-            setting1.MatchConfidence = isMatch[0] + isMatch[1];
-            setting2.MatchConfidence = isMatch[0] + isMatch[1];
+            var uniqueIdMatch = MatchVisibleUniqueId(setting1.RelaySetting.UniqueId, setting2.RelaySetting.UniqueId);
 
-            return isMatch;
+            var nameMatch = MatchString(setting1.RelaySetting.DisplayName, setting2.RelaySetting.DisplayName);
+
+            if (uniqueIdMatch.isExact)
+            {
+                score += 2; // UniqueId match is strong indicator
+            }
+            else if (uniqueIdMatch.isMatch)
+            {
+                score += 1; // UniqueId partial match is weak indicator
+            }
+
+            if (nameMatch.isExact)
+            {
+                score += 2; // Name match is strong indicator
+            }
+            else if (nameMatch.isMatch)
+            {
+                score += 1; // Name partial match is weak indicator
+            }
+
+            if (score > 1)
+            {
+                setting1.MatchingSettingVM = setting2;
+                setting2.MatchingSettingVM = setting1;
+                setting1.MatchConfidence = score;
+                setting2.MatchConfidence = score;
+            }
+            return score;
         }
 
 
 
-
-        public static bool CompareStringArray(string[]? list1, string[]? list2)
-        {
-            if (list1 == null || list2 == null || list1.Length != list2.Length)
-            {
-                return false;
-            }
-
-            for (int i = 0; i < list1.Length; i++)
-            {
-                if (string.IsNullOrEmpty(list1[i]) || string.IsNullOrEmpty(list2[i]) || !MatchString1(list1[i], list2[i]))
-                {
-                    return false;
-                }
-
-            }
-
-            return true;
-        }
-
-
-        public static bool MatchString1(string string1, string string2)
-        {
-            // Remove all whitespace and convert to lower case
-            string s1 = new string(string1.Where(c => !char.IsWhiteSpace(c)).ToArray()).ToLowerInvariant();
-            string s2 = new string(string2.Where(c => !char.IsWhiteSpace(c)).ToArray()).ToLowerInvariant();
-
-            return s1 == s2;
-        }
-
-
-        // For matching strings with minor differences
+        // -----------For matching strings with minor differences------------
         public static (bool isMatch, bool isExact) MatchString(string string1, string string2)
         {
             // Remove all whitespace and convert to lower case
@@ -172,6 +199,27 @@ namespace RelaySettingToolViewModel
                 if (i < lenA || j < lenB) edits++;
                 return edits == 1;
             }
+        }
+        public static (bool isMatch, bool isExact) MatchVisibleUniqueId(string string1, string string2)
+        {
+            if (string.IsNullOrWhiteSpace(string1) || string.IsNullOrWhiteSpace(string2))
+                return (false, false);
+
+            var parts1 = string1.Split('.');
+            var parts2 = string2.Split('.');
+
+            // Exact match: all parts must match and count must be equal
+            if (parts1.Length == parts2.Length && parts1.SequenceEqual(parts2))
+                return (true, true);
+
+            // Partial match: last two numbers must match (if both have at least two parts)
+            if (parts1.Length >= 2 && parts2.Length >= 2)
+            {
+                if (parts1[^1] == parts2[^1] && parts1[^2] == parts2[^2])
+                    return (true, false);
+            }
+
+            return (false, false);
         }
     }
 }

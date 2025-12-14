@@ -53,7 +53,6 @@ namespace RelayPlanDocumentModel
 
 
         }
-        public IHmiTable MatchingTable { get; set; }
         public List<IRelaySetting>? Settings { get; set; } = new List<IRelaySetting>();
 
         public IXLCell? UniqueIdCell { get; set; }
@@ -79,14 +78,21 @@ namespace RelayPlanDocumentModel
         }
         public string? DigsiPathString
         {
-            get => _digsiPathCell?.GetString();
+            get
+            {
+                return _digsiPathCell?.GetString() ?? string.Empty;
+            }
         }
         public string[]? DigsiPathList
         {
             get
             {
-                string cellvalue = _digsiPathCell?.GetString() ?? string.Empty;
-                return !string.IsNullOrEmpty(cellvalue) ? cellvalue.Trim().Split(",").ToArray() : null;
+                // Split and trim each part
+                return DigsiPathString!
+                    .Split(',')
+                    .Select(s => s.Trim())
+                    .Where(s => !string.IsNullOrEmpty(s))
+                    .ToArray();
             }
             set
             {

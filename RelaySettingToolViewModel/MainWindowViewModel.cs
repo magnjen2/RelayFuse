@@ -1,5 +1,4 @@
 ﻿using Microsoft.Win32;
-//using RelaySettingToolModel;
 using Sip5Library.Sip5TeaxModels;
 using System;
 using System.Collections.Generic;
@@ -23,8 +22,9 @@ namespace RelaySettingToolViewModel
         {
             OpenTeaxFileCommand = new RelayCommand(OpenTeaxFile);
             OpenRPlanFileCommand = new RelayCommand(OpenRPlanFile, CanOpenRPlanFile);
-            ExportToExcelCommand = new RelayCommand(ExportToExcel, CanOpenRPlanFile);
-            SelectedHwUnit = HwUnits?.FirstOrDefault();
+
+            _selectedHwUnit = HwUnits?.FirstOrDefault();
+            _selectedDeviceType = DeviceTypeRows?.FirstOrDefault();
 
             MergingToolViewModel.TeaxSideViewModel = new TeaxSideViewModel();
             MergingToolViewModel.RPSideViewModel = new RPSideViewModel();
@@ -34,9 +34,21 @@ namespace RelaySettingToolViewModel
 
         public ICommand OpenTeaxFileCommand { get; }
         public ICommand OpenRPlanFileCommand { get; }
-        public ICommand ExportToExcelCommand { get; }
 
 
+        private bool _isBusy;
+        public bool IsBusy
+        {
+            get => _isBusy;
+            set
+            {
+                if (_isBusy != value)
+                {
+                    _isBusy = value;
+                    OnPropertyChanged(nameof(IsBusy));
+                }
+            }
+        }
 
         private bool _isTeaxFileLoaded;
         public bool IsTeaxFileLoaded
@@ -136,8 +148,10 @@ namespace RelaySettingToolViewModel
         }
 
 
-        private void OpenTeaxFile(object? parameter)
+        private async void OpenTeaxFile(object? parameter)
         {
+            _hwUnits = new List<IHWUnitNode>() { new PlaceholderHWUnitNode() };
+
             var openFileDialog = new OpenFileDialog
             {
                 Filter = "Teax files (*.teax)|*.teax"
@@ -146,31 +160,35 @@ namespace RelaySettingToolViewModel
             {
                 string filePath = openFileDialog.FileName;
                 string textContent = File.ReadAllText(filePath);
+                XElement rootNode = XElement.Load(filePath);
 
-                ProcessTeaxFile(filePath);
+                IsBusy = true;
+                OnPropertyChanged(nameof(IsBusy));
+                await Task.Yield();
+                try
+                {
+                    TreeRootBase = await Task.Run(() => { return new TeaxTreeRootBase(rootNode); });
+                }
+                finally
+                {
+                    IsBusy = false; OnPropertyChanged(nameof(IsBusy));
+                }
 
+                HwUnits!.AddRange(TreeRootBase.HardwareContainer.HardwareUnits);
+                OnPropertyChanged(nameof(HwUnits));
+                SelectedHwUnit = HwUnits?.FirstOrDefault();
+                IsTeaxFileLoaded = true;
             }
-        }
-
-        private void ProcessTeaxFile(string filePath)
-        {
-            XElement rootNode = XElement.Load(filePath);
-            TreeRootBase = new TeaxTreeRootBase(rootNode);
-
-            var _hwUnitList = new List<IHWUnitNode>() { new PlaceholderHWUnitNode() };
-            _hwUnitList.AddRange(TreeRootBase.HardwareContainer.HardwareUnits);
-            HwUnits = _hwUnitList;
-            SelectedHwUnit = HwUnits?.FirstOrDefault();
-            IsTeaxFileLoaded = true;
-
         }
 
         private bool CanOpenRPlanFile(object? parameter)
         {
             return true;
         }
-        private void OpenRPlanFile(object? parameter)
+        private async void OpenRPlanFile(object? parameter)
         {
+            _deviceTypeRows = new List<IGrouping<string, IXLRow>>() { new PlaceholderDeviceTypeGrouping() };
+
             var openFileDialog = new OpenFileDialog
             {
                 Filter = "Excel files (*.xlsx;*.xls)|*.xlsx;*.xls"
@@ -182,8 +200,23 @@ namespace RelaySettingToolViewModel
 
                 if (extension == ".xlsx" || extension == ".xls")
                 {
-                    Document = new ExcelDocument(filePath);
+                    IsBusy = true;
+                    OnPropertyChanged(nameof(IsBusy));
+                    await Task.Yield();
+                    try
+                    {
+                        Document = await Task.Run(() => new ExcelDocument(filePath));
+                    }
+                    finally
+                    {
+                        IsBusy = false;
+                    }
+
+                    DeviceTypeRows!.AddRange(Document!.DeviceTypeRows);
+                    OnPropertyChanged(nameof(DeviceTypeRows));
+                    SelectedDeviceType = DeviceTypeRows.FirstOrDefault();
                 }
+
                 IsRelayPlanLoaded = true;
             }
         }
@@ -196,13 +229,16 @@ namespace RelaySettingToolViewModel
                 if (_document != value)
                 {
                     _document = value;
-                    DeviceTypeRows = Document?.DeviceTypeRows;
                     OnPropertyChanged(nameof(Document));
                 }
             }
         }
 
-        private List<IGrouping<string, IXLRow>>? _deviceTypeRows;
+
+
+
+        //------ Relay plan device Type Selection -----
+        private List<IGrouping<string, IXLRow>>? _deviceTypeRows = new List<IGrouping<string, IXLRow>>() { new PlaceholderDeviceTypeGrouping() };
         public List<IGrouping<string, IXLRow>>? DeviceTypeRows
         {
             get => _deviceTypeRows;
@@ -228,20 +264,29 @@ namespace RelaySettingToolViewModel
         }
         private void OnDeviceTypeSelected()
         {
-            var deviceInExcel = _document?.GetDevice(SelectedDeviceType!);
-            MergingToolViewModel.RPSideViewModel = new RPSideViewModel(deviceInExcel!);
+            if (!(SelectedDeviceType is PlaceholderDeviceTypeGrouping) && SelectedDeviceType != null)
+            {
+                var deviceInExcel = _document?.GetDevice(SelectedDeviceType!);
+                MergingToolViewModel.RPSideViewModel = new RPSideViewModel(deviceInExcel!);
+            }
         }
 
 
-        // Add the private method for Excel export
-        private void ExportToExcel(object? parameter)
+
+        private class PlaceholderDeviceTypeGrouping : IGrouping<string, IXLRow>
         {
-            //    var exportService = new TeaxToExcelExportService();
-            //    var excelDocumentModel = exportService.MakeExcelModel(TreeRootBase!, SelectedHwUnit!, 1);
-            //    MergingToolViewModel.RPSectionViewModel = new RPSectionViewModel(excelDocumentModel);
+            public string Key => "Select Device";
 
+            public IEnumerator<IXLRow> GetEnumerator()
+            {
+                yield break;
+            }
+
+            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
         }
-
 
         private class PlaceholderHWUnitNode : IHWUnitNode
         {

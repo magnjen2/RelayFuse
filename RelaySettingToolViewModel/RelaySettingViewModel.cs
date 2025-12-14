@@ -9,7 +9,7 @@ using RelayFuseInterfaces;
 
 namespace RelaySettingToolViewModel
 {
-    public interface IRelaySettingViewModel : IDataGridItem
+    public interface IRelaySettingViewModel : IDataGridItemBase
     {
         IRelaySetting RelaySetting { get; }
         IRelaySettingViewModel? MatchingSettingVM { get; set; }
@@ -18,14 +18,13 @@ namespace RelaySettingToolViewModel
 
     }
 
-    public class RelaySettingViewModel : IRelaySettingViewModel
+    public class RelaySettingViewModel : DataGridItemBase, IRelaySettingViewModel
     {
         public RelaySettingViewModel(IRelaySetting relaySetting)
         {
             RelaySetting = relaySetting;
             Color = Colors.Transparent;
         }
-        public Color Color { get; set; }
         public IRelaySetting RelaySetting { get; }
         public IRelaySettingViewModel? MatchingSettingVM { get; set; }
         public int MatchConfidence { get; set; }

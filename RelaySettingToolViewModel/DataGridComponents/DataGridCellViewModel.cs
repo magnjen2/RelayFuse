@@ -6,7 +6,7 @@ namespace RelaySettingToolViewModel
 {
     public class DataGridCellViewModel : ViewModelBase
     {
-        public IDataGridItem? AssociatedItem { get; set; }
+        public IDataGridItemBase? AssociatedItem { get; set; }
         public string Content { get; set; } = string.Empty;
         public Color CellColor { get; set; } = Colors.Transparent;
 

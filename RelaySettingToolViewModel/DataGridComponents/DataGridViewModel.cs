@@ -11,37 +11,47 @@ namespace RelaySettingToolViewModel
 {
     public class DataGridViewModel
     {
-        public ObservableCollection<DataGridRowViewModel> GridRows { get; } = new();
+        public ObservableCollection<IDataGridItemBase> GridRows { get; } = new();
         public void ClearGrid() => GridRows.Clear();
 
         public void AddHmiTableRow(IHmiTableViewModel hmiTableVM, Color rowColor)
         {
             // Add one DigsiPath row per HmiTableViewModel
-            GridRows.Add(new DataGridRowViewModel
+
+
+            hmiTableVM.IsGridOverlay = true;
+            hmiTableVM.OverlayText = new DataGridCellViewModel
             {
-                IsGridOverlay = true,
-                OverlayText = new DataGridCellViewModel { Content = hmiTableVM.HmiTable.DigsiPathString!, 
-                                                          CellColor = rowColor ,
-                                                          AssociatedItem = hmiTableVM},
+                Content = hmiTableVM.HmiTable.DigsiPathString!,
+                CellColor = rowColor,
                 AssociatedItem = hmiTableVM
-            });
+            };
+            GridRows.Add(hmiTableVM);
 
         }
         public void AddSettingRow(IRelaySettingViewModel settingVM, Color cellColor)
         {
-            // Add RelaySetting row
 
-            var newSettingRow = new DataGridRowViewModel
+            settingVM.IsGridOverlay = false;
+            settingVM.Column1 = new DataGridCellViewModel { Content = settingVM.RelaySetting.UniqueId, CellColor = cellColor, AssociatedItem = settingVM };
+            settingVM.Column2 = new DataGridCellViewModel { Content = settingVM.RelaySetting.DisplayName, CellColor = cellColor, AssociatedItem = settingVM };
+            settingVM.Column3 = new DataGridCellViewModel { Content = settingVM.RelaySetting.SelectedValue, CellColor = cellColor, AssociatedItem = settingVM };
+            settingVM.Column4 = new DataGridCellViewModel { Content = settingVM.RelaySetting.Unit, CellColor = cellColor, AssociatedItem = settingVM };
+
+            GridRows.Add(settingVM);
+
+        }
+        public void AddEmptyRow()
+        {
+            var emptyRow = new DataGridItemBase
             {
                 IsGridOverlay = false,
-                Column1 = new DataGridCellViewModel { Content = settingVM.RelaySetting.UniqueId, CellColor = cellColor, AssociatedItem = settingVM },
-                Column2 = new DataGridCellViewModel { Content = settingVM.RelaySetting.DisplayName, CellColor = cellColor, AssociatedItem = settingVM },
-                Column3 = new DataGridCellViewModel { Content = settingVM.RelaySetting.SelectedValue, CellColor = cellColor, AssociatedItem = settingVM },
-                Column4 = new DataGridCellViewModel { Content = settingVM.RelaySetting.Unit, CellColor = cellColor, AssociatedItem = settingVM }
+                Column1 = new DataGridCellViewModel { Content = string.Empty, CellColor = Colors.Transparent },
+                Column2 = new DataGridCellViewModel { Content = string.Empty, CellColor = Colors.Transparent },
+                Column3 = new DataGridCellViewModel { Content = string.Empty, CellColor = Colors.Transparent },
+                Column4 = new DataGridCellViewModel { Content = string.Empty, CellColor = Colors.Transparent }
             };
-
-            GridRows.Add(newSettingRow);
-           
+            GridRows.Add(emptyRow);
         }
 
         public void LoadMultipleTables(IEnumerable<IHmiTableViewModel> hmiTableVMs)

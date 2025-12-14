@@ -30,7 +30,7 @@ namespace RelaySettingToolView
         {
             var border = sender as Border;
             var cellVM = border?.DataContext as DataGridCellViewModel;
-            var rowVM = (border?.TemplatedParent as FrameworkElement)?.DataContext as DataGridRowViewModel;
+            var rowVM = (border?.TemplatedParent as FrameworkElement)?.DataContext as DataGridItemBase;
 
             if (rowVM != null && cellVM != null)
             {
