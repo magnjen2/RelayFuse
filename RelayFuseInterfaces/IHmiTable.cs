@@ -4,7 +4,7 @@
     {
         List<IRelaySetting> Settings { get; set; }
         string? DigsiPathString { get; }
-        string[]? DigsiPathList { get; set; }
+        string[]? DigsiPathList { get; }
         string? UniqueId { get; }
     }
 }

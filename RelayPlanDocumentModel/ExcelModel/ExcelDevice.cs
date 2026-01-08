@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace RelayPlanDocumentModel
@@ -14,10 +15,19 @@ namespace RelayPlanDocumentModel
     {
         public ExcelDevice(List<ISettingsPage> pages)
         {
-            SettingPages = pages;
+            SettingPages = pages ?? throw new ArgumentNullException(nameof(pages));
+            if (SettingPages.Count == 0)
+            {
+                throw new ArgumentException("At least one settings page is required to build an ExcelDevice.", nameof(pages));
+            }
         }
 
-        public List<ISettingsPage> SettingPages { get; set; }
+        private List<ISettingsPage> _settingPages = new List<ISettingsPage>();
+        public List<ISettingsPage> SettingPages
+        {
+            get => _settingPages;
+            set => _settingPages = value ?? throw new ArgumentNullException(nameof(value));
+        }
 
         public string DeviceType => SettingPages.FirstOrDefault()?.Devicetype?.GetString() ?? string.Empty;
 

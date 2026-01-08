@@ -9,6 +9,13 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="old\**" />
+	  <EmbeddedResource Remove="old\**" />
+	  <None Remove="old\**" />
+	  <Page Remove="old\**" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <Compile Remove="TeaxToExcelExportService.cs" />
 	</ItemGroup>
 

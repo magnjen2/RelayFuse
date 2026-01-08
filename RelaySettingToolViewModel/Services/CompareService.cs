@@ -1,5 +1,6 @@
 ﻿using DocumentFormat.OpenXml.Spreadsheet;
 using RelayFuseInterfaces;
+using RelayPlanDocumentModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,47 +11,23 @@ namespace RelaySettingToolViewModel
 {
     public static class CompareService
     {
-        public static void MatchAllHmiTables(TeaxSideViewModel teaxSideVM, RPSideViewModel rpSideVM)
+        public static void MatchAllHmiTables(MergingToolViewModel mergingToolViewModel)
         {
-            // Create working sets of IHmiTableViewModel where MatchingTable is null
-            var teaxTables = teaxSideVM.HmiTableVMs
-                .Where(vm => vm.HmiTable != null && vm.MatchingHmiTableVM == null)
-                .ToList();
+            var tableMergerVMs = mergingToolViewModel.HmiTableMergers;
 
-            var rpTables = rpSideVM.HmiTableVMs
-                .Where(vm => vm.HmiTable != null && vm.MatchingHmiTableVM == null)
-                .ToList();
-
-            // Use HashSet for efficient removal
-            var teaxSet = new HashSet<IHmiTableViewModel>(teaxTables);
-            var rpSet = new HashSet<IHmiTableViewModel>(rpTables);
-
-            foreach (var teaxHmiTable in teaxTables)
+            foreach (var tableMergerVM in tableMergerVMs)
             {
-                if (!teaxSet.Contains(teaxHmiTable))
-                    continue;
-
-                foreach (var rpHmiTable in rpTables)
+                foreach (var nonMatchedTable in mergingToolViewModel.GetUnmatchedHmiTables())
                 {
-                    if (!rpSet.Contains(rpHmiTable))
-                        continue;
-
-                    // TryMatchTable returns a confidence score (assumed signature: double TryMatchTable(IHmiTable a, IHmiTable b))
-                    int[] matchConfidence = CompareService.TryMatchTable(teaxHmiTable, rpHmiTable);
-                    if (matchConfidence[0] > 0 && matchConfidence[1] > 0)
+                    int[] matchConfidence = CompareService.TryMatchTable(tableMergerVM!, nonMatchedTable!);
+                    if (matchConfidence[0] > 0)//&& matchConfidence[1] > 0)
                     {
-                        teaxHmiTable.MatchingHmiTableVM = rpHmiTable;
-                        rpHmiTable.MatchingHmiTableVM = teaxHmiTable;
-
-                        teaxSet.Remove(teaxHmiTable);
-                        rpSet.Remove(rpHmiTable);
-
-                        break; // Move to next teaxHmiTable
+                        tableMergerVM.ExcelHmiTable = nonMatchedTable;
+                        tableMergerVM.MatchConfidence = matchConfidence;
+                        break;
                     }
                 }
-
             }
-            Console.WriteLine("Debug");
         }
 
 
@@ -75,62 +52,61 @@ namespace RelaySettingToolViewModel
             return result;
         }
 
-        public static int[] TryMatchTable(IHmiTableViewModel hmiTableTeax, IHmiTableViewModel hmiTableRp)
+        public static int[] TryMatchTable(IHmiTableMergerViewModel hmiTableMerger, IHmiTable rpHmiTable)
         {
             int[] matchConfidence = new int[2] { 0, 0 };
 
-            var digsiPathTeax = hmiTableTeax.HmiTable.DigsiPathString;
-            var digsiPathRp = hmiTableRp.HmiTable.DigsiPathString;
+            var digsiPathTeax = hmiTableMerger.TeaxHmiTable!.DigsiPathString;
+            var rpDigsiPath = rpHmiTable.DigsiPathString;
 
-            if (digsiPathTeax == null || digsiPathTeax.Length == 0 || digsiPathRp == null || digsiPathRp.Length == 0)
+            if (digsiPathTeax == null || digsiPathTeax.Length == 0 || rpDigsiPath == null || rpDigsiPath.Length == 0)
                 return matchConfidence;
 
-            // Clean digsiPathRp using the helper
-            digsiPathRp = CleanStatnettSpecificPath(digsiPathRp);
+            // Clean rpDigsiPath using the helper
+            rpDigsiPath = CleanStatnettSpecificPath(rpDigsiPath);
 
-            //if (digsiPathTeax.Contains("Z1") && digsiPathRp.Contains("Z1"))
-            //{
-            //    Console.WriteLine("Debug");
-            //}
+            var matchResult = MatchString(digsiPathTeax, rpDigsiPath);
 
-            var matchResult = MatchString(digsiPathTeax, digsiPathRp);
-            if (matchResult.isMatch && !matchResult.isExact)
-            {
-                Console.WriteLine("Debug");
-            }
 
             if (matchResult.isMatch) // if Digsi paths match between teax and relay plan
             {
                 matchConfidence[0] = 1; // Matching digsi path is indicated
 
-                foreach (var setting1 in hmiTableTeax.SettingViewModels)
-                {
-                    foreach (var setting2 in hmiTableRp.SettingViewModels)
-                    {
-                        var settingMatch = TryMatchSetting(setting1, setting2); // Trying to match settings within the hmi tables
-
-                        matchConfidence[1] += settingMatch; // Increasing match confidence based on settings matched
-                    }
-                }
+                MatchAllSettings(hmiTableMerger, rpHmiTable, matchConfidence);
             }
 
             return matchConfidence;
+
         }
 
 
-
-
-        public static int TryMatchSetting(IRelaySettingViewModel setting1, IRelaySettingViewModel setting2)
+        public static void MatchAllSettings(IHmiTableMergerViewModel hmiTableMerger, IHmiTable rpHmiTable, int[] matchConfidence)
         {
+            foreach (var settingMerger1 in hmiTableMerger.SettingMergers)
+            {
+                foreach (var setting2 in rpHmiTable.Settings)
+                {
+                    var settingMatch = TryMatchSetting(settingMerger1, setting2); // Trying to match settings within the hmi tables
+
+                    matchConfidence[1] += settingMatch; // Increasing match confidence based on settings matched
+                }
+            }
+        }
+
+
+        public static int TryMatchSetting(ISettingMergerViewModel settingMerger, IRelaySetting setting2)
+        {
+            var setting1 = settingMerger.TeaxRelaySetting!;
             int score = 0;
 
-            var uniqueIdMatch = MatchVisibleUniqueId(setting1.RelaySetting.UniqueId, setting2.RelaySetting.UniqueId);
+            var uniqueIdMatch = MatchVisibleUniqueId(setting1.UniqueId, setting2.UniqueId);
 
-            var nameMatch = MatchString(setting1.RelaySetting.DisplayName, setting2.RelaySetting.DisplayName);
+            var nameMatch = MatchString(setting1.DisplayName, setting2.DisplayName);
 
             if (uniqueIdMatch.isExact)
             {
                 score += 2; // UniqueId match is strong indicator
+                settingMerger.UniqueIdMatch = true;
             }
             else if (uniqueIdMatch.isMatch)
             {
@@ -140,6 +116,7 @@ namespace RelaySettingToolViewModel
             if (nameMatch.isExact)
             {
                 score += 2; // Name match is strong indicator
+                settingMerger.DisplayNameMatch = true;
             }
             else if (nameMatch.isMatch)
             {
@@ -148,10 +125,8 @@ namespace RelaySettingToolViewModel
 
             if (score > 1)
             {
-                setting1.MatchingSettingVM = setting2;
-                setting2.MatchingSettingVM = setting1;
-                setting1.MatchConfidence = score;
-                setting2.MatchConfidence = score;
+                settingMerger.ExcelRelaySetting = setting2;
+                settingMerger.MatchConfidence = score;
             }
             return score;
         }

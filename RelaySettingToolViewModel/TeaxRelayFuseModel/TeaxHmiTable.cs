@@ -8,20 +8,21 @@ namespace RelaySettingToolViewModel
 {
     public interface ITeaxHmiTable : IHmiTable
     {
+
     }
 
     public class TeaxHmiTable : ITeaxHmiTable
     {
         public TeaxHmiTable(string[] digsiPath, List<IRelaySetting> settings)
         {
-            DigsiPathList = digsiPath;
+            _digsiPathList = digsiPath;
             Settings = settings;
         }
-
-        public string[] DigsiPathList { get; set; }
+        private string[] _digsiPathList;
+        public string[] DigsiPathList => _digsiPathList;
         public List<IRelaySetting> Settings { get; set; } = new List<IRelaySetting>();
         public string? UniqueId => Settings.FirstOrDefault()?.UniqueId;
-        public string? DigsiPathString => DigsiPathList != null ? string.Join(", ", DigsiPathList) : null;
+        public string? DigsiPathString => _digsiPathList != null ? string.Join(", ", _digsiPathList) : null;
 
     }
 

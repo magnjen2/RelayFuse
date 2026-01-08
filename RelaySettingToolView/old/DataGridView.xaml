@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="RelaySettingToolView.DataGridView"
+﻿<!--<UserControl x:Class="RelaySettingToolView.DataGridView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -13,7 +13,7 @@
 
     <DataGrid ItemsSource="{Binding GridRows}" AutoGenerateColumns="False">
         <DataGrid.Columns>
-            <!-- Column1 -->
+            --><!-- Column1 --><!--
             <DataGridTemplateColumn Header="Unique id">
                 <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate>
@@ -32,7 +32,7 @@
                     </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
-            <!-- Column2 -->
+            --><!-- Column2 --><!--
             <DataGridTemplateColumn Header="Display name">
                 <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate>
@@ -54,7 +54,7 @@
                     </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
-            <!-- Column3 value -->
+            --><!-- Column3 value --><!--
             <DataGridTemplateColumn Header="Setting value">
                 <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate>
@@ -73,7 +73,7 @@
                     </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
-            <!-- Column4 -->
+            --><!-- Column4 --><!--
             <DataGridTemplateColumn Header="Unit">
                 <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate>
@@ -93,7 +93,7 @@
                 </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
         </DataGrid.Columns>
-        <!-- Overlay OverlayText across all columns when IsGridOverlay is true -->
+        --><!-- Overlay OverlayText across all columns when IsGridOverlay is true --><!--
         <DataGrid.RowStyle>
             <Style TargetType="DataGridRow">
                 <Setter Property="Template">
@@ -129,4 +129,4 @@
             </Style>
         </DataGrid.RowStyle>
     </DataGrid>
-</UserControl>
+</UserControl>-->

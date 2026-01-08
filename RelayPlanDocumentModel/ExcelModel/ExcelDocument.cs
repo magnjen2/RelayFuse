@@ -1,12 +1,12 @@
 ﻿using ClosedXML.Excel;
-using DocumentFormat.OpenXml.Spreadsheet;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace RelayPlanDocumentModel
 {
-    public interface IExcelDocument
+    public interface IExcelDocument : IDisposable
     {
         IXLCell? Anleggseier { get; set; }
         IXLCell? Dato { get; set; }
@@ -25,58 +25,62 @@ namespace RelayPlanDocumentModel
         public ExcelDocument() { }
         public ExcelDocument(string filePath)
         {
+            if (string.IsNullOrWhiteSpace(filePath)) throw new ArgumentException("File path must be provided.", nameof(filePath));
             Workbook = new XLWorkbook(filePath);
-            var worksheet = Workbook.Worksheets.FirstOrDefault();
+            var worksheet = Workbook.Worksheets.FirstOrDefault() ?? throw new InvalidOperationException("Workbook contains no worksheets.");
 
-            if (worksheet != null)
-            {
-                Anleggseier = worksheet.Cell("E6");
-                Stasjon = worksheet.Cell("E7");
-                Enhet = worksheet.Cell("E8");
-                ReleplanNavn = worksheet.Cell("N6");
-                Dato = worksheet.Cell("D12");
-                Utgave = worksheet.Cell("B12");
+            Anleggseier = worksheet.Cell("E6");
+            Stasjon = worksheet.Cell("E7");
+            Enhet = worksheet.Cell("E8");
+            ReleplanNavn = worksheet.Cell("N6");
+            Dato = worksheet.Cell("D12");
+            Utgave = worksheet.Cell("B12");
 
-                _unusedRowSections = ExcelStaticTools.FindUnusedRowSections(worksheet, 3);
 
-                var titlesRows = worksheet.RowsUsed()
-                    .Where(row => row.Cell(2).GetString().Contains("Adresse:")
-                    && row.Cell(4).GetString().Contains("Display-tekst:")
-                    && row.Cell(12).GetString().Contains("Kommentarer:"));
 
-                // Load Sip5Types.csv into a HashSet<string>
-                var sip5Types = new HashSet<string>(
-                    System.IO.File.ReadAllLines(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ExcelTemplates", "Sip5Types.csv"))
-                        .Select(line => line.Trim())
-                        .Where(line => !string.IsNullOrEmpty(line))
-                );
+            var titlesRows = worksheet.RowsUsed()
+                .Where(row => row.Cell(2).GetString().Contains("Adresse:")
+                && row.Cell(4).GetString().Contains("Display-tekst:")
+                && row.Cell(12).GetString().Contains("Kommentarer:"));
 
-                DeviceTypeRows = titlesRows
-                    .Select(row => worksheet.Row(row.RowNumber() - 2))
-                    .Where(row =>
-                    {
-                        var cellValue = row.Cell(2).GetString();
-                        return sip5Types.Any(type => cellValue.Contains(type, StringComparison.OrdinalIgnoreCase));
-                    })
-                    .GroupBy(r => r.Cell(2).GetString())
-                    .ToList();
+            var sip5Types = new HashSet<string>(
+                System.IO.File.ReadAllLines(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ExcelTemplates", "Sip5Types.csv"))
+                    .Select(line => line.Trim())
+                    .Where(line => !string.IsNullOrEmpty(line))
+            );
 
-            }
+            DeviceTypeRows = titlesRows
+                .Select(row => worksheet.Row(row.RowNumber() - 2))
+                .Where(row =>
+                {
+                    var cellValue = row.Cell(2).GetString();
+                    return sip5Types.Any(type => cellValue.Contains(type, StringComparison.OrdinalIgnoreCase));
+                })
+                .GroupBy(r => r.Cell(2).GetString())
+                .ToList();
         }
 
         public IExcelDevice GetDevice(IGrouping<string, IXLRow> deviceTypeRows)
         {
-            var worksheet = Workbook.Worksheets.FirstOrDefault();
+            if (deviceTypeRows == null) throw new ArgumentNullException(nameof(deviceTypeRows));
+            if (Workbook == null) throw new InvalidOperationException("Workbook is not initialized.");
+
+            var worksheet = Workbook.Worksheets.FirstOrDefault() ?? throw new InvalidOperationException("Workbook contains no worksheets.");
+
+            _unusedRowSections = ExcelStaticTools.FindUnusedRowSections(worksheet, 3);
 
             _pageStartRows = deviceTypeRows.Select(r => r.RowNumber() - 2).ToList();
 
-
-
-            var pageSegments = ExcelStaticTools.GetRowSegments(worksheet, _pageStartRows, _unusedRowSections);
+            var pageSegments = ExcelStaticTools.GetRowSegments(worksheet, _pageStartRows, _unusedRowSections.Concat(_pageStartRows).ToList());
 
             var pagesList = new List<ISettingsPage>();
             foreach (var pageRows in pageSegments)
             {
+                //if (pageRows.Any(x => x.RowNumber() == 875))
+                //{
+                //    Console.WriteLine("debug");
+                //}
+
                 pagesList.Add(new SettingsPage(pageRows, worksheet));
             }
 
@@ -97,7 +101,13 @@ namespace RelayPlanDocumentModel
 
         public void Save(string filePath)
         {
-            Workbook?.SaveAs(filePath);
+            if (Workbook == null) throw new InvalidOperationException("Workbook is not initialized.");
+            Workbook.SaveAs(filePath);
+        }
+
+        public void Dispose()
+        {
+            Workbook?.Dispose();
         }
     }
 }

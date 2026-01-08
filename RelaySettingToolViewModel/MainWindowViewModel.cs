@@ -26,8 +26,6 @@ namespace RelaySettingToolViewModel
             _selectedHwUnit = HwUnits?.FirstOrDefault();
             _selectedDeviceType = DeviceTypeRows?.FirstOrDefault();
 
-            MergingToolViewModel.TeaxSideViewModel = new TeaxSideViewModel();
-            MergingToolViewModel.RPSideViewModel = new RPSideViewModel();
 
         }
 
@@ -127,7 +125,7 @@ namespace RelaySettingToolViewModel
                 var applicationNode = TreeRootBase?.GetApplicationNode(_selectedHwUnit);
                 if (applicationNode != null)
                 {
-                    MergingToolViewModel.TeaxSideViewModel = new TeaxSideViewModel(applicationNode);
+                    MergingToolViewModel.InitializeTeax(applicationNode);
                 }
             }
         }
@@ -267,7 +265,7 @@ namespace RelaySettingToolViewModel
             if (!(SelectedDeviceType is PlaceholderDeviceTypeGrouping) && SelectedDeviceType != null)
             {
                 var deviceInExcel = _document?.GetDevice(SelectedDeviceType!);
-                MergingToolViewModel.RPSideViewModel = new RPSideViewModel(deviceInExcel!);
+                MergingToolViewModel.InitializeRP(deviceInExcel!);
             }
         }
 

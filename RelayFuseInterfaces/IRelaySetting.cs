@@ -8,5 +8,6 @@
         string Unit { get; set; }
         string DigsiPathString { get; }
     }
+
 }
 

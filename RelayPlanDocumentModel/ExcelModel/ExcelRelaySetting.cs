@@ -1,31 +1,34 @@
 ﻿using ClosedXML.Excel;
 using RelayFuseInterfaces;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace RelayPlanDocumentModel
 {
     public interface IExcelRelaySetting : IRelaySetting
     {
-        List<string>? AllSelectableValues { get; }
-        List<IXLCell> AllSelectableValuesCells { get; set; }
-        IXLCell? DisplayNameCell { get; set; }
-        IXLCell SelectedValueCell { get; set; }
-        IXLCell? UniqueIdCell { get; set; }
-        IXLCell? UnitCell { get; set; }
+        IReadOnlyList<string> AllSelectableValues { get; }
+        IReadOnlyList<IXLCell> AllSelectableValuesCells { get; }
+        IXLCell DisplayNameCell { get; }
+        IXLCell SelectedValueCell { get; }
+        IXLCell UniqueIdCell { get; }
+        IXLCell UnitCell { get; }
     }
 
     public class ExcelRelaySetting : IExcelRelaySetting
     {
         public ExcelRelaySetting(IXLRangeRows settingRows, IExcelHmiTable hmiTable)
         {
+            ArgumentNullException.ThrowIfNull(settingRows);
+            _hmiTable = hmiTable ?? throw new ArgumentNullException(nameof(hmiTable));
 
-            _hmiTable = hmiTable;
-
-            // Convert to list and filter out rows where cell H (Cell(8)) is empty
-            var filteredRows = settingRows.Where(x => !(string.IsNullOrEmpty(x.Cell(8).GetString())
-                                                    && string.IsNullOrEmpty(x.Cell(4).GetString()))).ToList();
+            var filteredRows = settingRows
+                .Where(x => !(string.IsNullOrEmpty(x.Cell(8).GetString()) && string.IsNullOrEmpty(x.Cell(4).GetString())))
+                .ToList();
 
             if (filteredRows.Count == 0)
-                throw new Exception("No valid setting rows found.");
+                throw new InvalidOperationException("No valid setting rows found.");
 
             UniqueIdCell = filteredRows.First().Cell(2);
             DisplayNameCell = filteredRows.First().Cell(4);
@@ -34,35 +37,82 @@ namespace RelayPlanDocumentModel
             if (filteredRows.Count == 1)
             {
                 var cellH = filteredRows.First().Cell(8);
-                SelectedValueCell = cellH;
-                AllSelectableValuesCells.Add(cellH);
+                SelectedValueCell = cellH ?? throw new InvalidOperationException("Selected value cell not found in single-row setting.");
+                _allSelectableValuesCells.Add(cellH);
                 return;
             }
 
+            bool selectedValueFound = false;
             foreach (IXLRangeRow settingRow in filteredRows)
             {
                 var cellGstring = settingRow.Cell(7).GetString(); // Selector-cell
                 var cellH = settingRow.Cell(8); // Value-cell
 
-                AllSelectableValuesCells.Add(cellH);
+                _allSelectableValuesCells.Add(cellH);
 
                 if (cellGstring.Contains("→") || cellGstring.Contains("®"))
                 {
+                    //if (selectedValueFound)
+                    //{
+                    //    throw new InvalidOperationException($"Multiple selected values detected for setting '{DisplayNameCell.GetString()}'.");
+                    //}
+
                     SelectedValueCell = cellH;
+                    selectedValueFound = true;
                 }
                 else if (!string.IsNullOrEmpty(cellGstring))
                 {
-                    throw new Exception($"Unexpected content in selector cell: '{cellGstring}'");
+                    throw new InvalidOperationException($"Unexpected content in selector cell: '{cellGstring}'.");
                 }
             }
+
+            if (!selectedValueFound)
+            {
+                var cellH = filteredRows.First().Cell(8);
+                SelectedValueCell = cellH ?? throw new InvalidOperationException("Selected value cell not found in single-row setting.");
+                _allSelectableValuesCells.Add(cellH);
+                return;
+            }
         }
-        private IExcelHmiTable _hmiTable;
-        public IXLCell? UniqueIdCell { get; set; }
+
+        private readonly List<IXLCell> _allSelectableValuesCells = new List<IXLCell>();
+        private readonly IExcelHmiTable _hmiTable;
+        private IXLCell? _selectedValueCell;
+
+        public IReadOnlyList<string> AllSelectableValues => _allSelectableValuesCells.Select(cell => cell.GetString()).ToArray();
+        public IReadOnlyList<IXLCell> AllSelectableValuesCells => _allSelectableValuesCells;
+
+        public IXLCell DisplayNameCell { get; private set; }
+        public string DisplayName
+        {
+            get => DisplayNameCell?.GetString() ?? throw new InvalidOperationException("DisplayNameCell is null");
+            set => DisplayNameCell.Value = value;
+        }
+
+        public IXLCell UnitCell { get; private set; }
+        public string Unit
+        {
+            get => UnitCell?.GetString() ?? throw new InvalidOperationException("UnitCell is null");
+            set => UnitCell.Value = value;
+        }
+
+        public IXLCell SelectedValueCell
+        {
+            get => _selectedValueCell ?? throw new InvalidOperationException("SelectedValueCell is not initialized.");
+            private set => _selectedValueCell = value ?? throw new ArgumentNullException(nameof(value));
+        }
+        public string SelectedValue
+        {
+            get => SelectedValueCell.GetString();
+            set => SelectedValueCell.Value = value;
+        }
+
+        public IXLCell UniqueIdCell { get; private set; }
         public string UniqueId
         {
             get
             {
-                var cellValue = UniqueIdCell?.GetString().Trim(' ') ?? string.Empty;
+                var cellValue = UniqueIdCell?.GetString().Trim(' ') ?? throw new InvalidOperationException("UniqueIdCell is not initialized.");
                 var hmiTableValue = _hmiTable?.UniqueId ?? string.Empty;
 
                 if (!string.IsNullOrEmpty(cellValue) && !string.IsNullOrEmpty(hmiTableValue))
@@ -71,57 +121,13 @@ namespace RelayPlanDocumentModel
                 }
                 return cellValue;
             }
-            set
-            {
-                if (UniqueIdCell != null)
-                    UniqueIdCell.Value = value;
-            }
+            set => UniqueIdCell.Value = value;
         }
 
-
-        public string DigsiPathString => 
-            _hmiTable != null && !string.IsNullOrEmpty(_hmiTable.DigsiPathString) 
-            ? _hmiTable.DigsiPathList + "," + DisplayName 
+        public string DigsiPathString =>
+            _hmiTable != null && !string.IsNullOrEmpty(_hmiTable.DigsiPathString)
+            ? string.Join(",", _hmiTable.DigsiPathList ?? Array.Empty<string>()) + "," + DisplayName
             : string.Empty;
-
-
-        public IXLCell? DisplayNameCell { get; set; }
-        public string DisplayName
-        {
-            get => DisplayNameCell?.GetString() ?? throw new Exception("DisplayNameCell is null");
-            set
-            {
-                if (DisplayNameCell != null)
-                    DisplayNameCell.Value = value;
-            }
-        }
-        public IXLCell? UnitCell { get; set; }
-        public string Unit
-        {
-            get => UnitCell?.GetString() ?? throw new Exception("UnitCell is null");
-            set
-            {
-                if (UnitCell != null)
-                    UnitCell.Value = value;
-            }
-        }
-        public IXLCell? SelectedValueCell { get; set; }
-        public string SelectedValue
-        {
-            get => SelectedValueCell?.Value.ToString() ?? string.Empty; 
-            
-            set
-            {
-                if (SelectedValueCell != null)
-                    SelectedValueCell.Value = value;
-            }
-        }
-        public List<IXLCell>? AllSelectableValuesCells { get; set; } = new List<IXLCell>();
-        public List<string> AllSelectableValues
-        {
-            get => AllSelectableValuesCells?.Select(c => c.GetString()).ToList() ?? throw new Exception("AllSelectableValuesCells is null");
-        }
-
     }
 }
 

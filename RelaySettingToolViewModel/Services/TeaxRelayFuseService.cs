@@ -21,7 +21,7 @@ namespace RelaySettingToolViewModel
         public List<ITeaxHmiTable> GetHmiTables()
         {
             // Step 1: Get all relevant setting nodes below the functional application node
-            var settingNodes = _funcAppNode.NodesBelowOfType<ISettingNodeBase>().Where(x => x.IsVisible && !x.IsReadOnly).ToList();
+            var settingNodes = _funcAppNode.NodesBelowOfType<ISettingNodeBase>().Where(x => x.IsVisible).ToList();
 
             // Step 3: Create TeaxRelaySetting objects with DigsiPath
             var relaySettings = settingNodes
@@ -88,11 +88,12 @@ namespace RelaySettingToolViewModel
                 currentNode = currentNode.Parent as IDigsiPathMember;
             }
 
+
+            segments.Reverse();
+
             // Add HmiTableName if present
             if (!string.IsNullOrEmpty(settingNode.HmiTableName))
                 segments.Add(settingNode.HmiTableName);
-
-            segments.Reverse();
 
             return segments.ToArray();
         }

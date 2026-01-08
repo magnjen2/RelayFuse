@@ -1,4 +1,9 @@
 ﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Office2010.Drawing;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace RelayPlanDocumentModel
@@ -11,82 +16,116 @@ namespace RelayPlanDocumentModel
             List<int> endRows,
             int columnCount = 17)
         {
+            var stopwatch = Stopwatch.StartNew();
+            if (worksheet == null) throw new ArgumentNullException(nameof(worksheet));
+            if (startRows == null || startRows.Count == 0) throw new ArgumentException("startRows must contain at least one row.", nameof(startRows));
+            if (endRows == null || endRows.Count == 0) throw new ArgumentException("endRows must contain at least one row.", nameof(endRows));
+            if (columnCount <= 0) throw new ArgumentOutOfRangeException(nameof(columnCount), "columnCount must be positive.");
+
+            var orderedStarts = startRows.OrderBy(r => r).ToList();
+            var orderedEnds = endRows.OrderBy(r => r).ToList();
+
             var segments = new List<IXLRangeRows>();
-            for (int i = 0; i < startRows.Count; i++)
+            for (int i = 0; i < orderedStarts.Count; i++)
             {
-                int startRow = startRows[i];
-                int endRow = endRows.First(x => x > startRow);
-                var rangeRows = worksheet.Range(startRow, 1, endRow, columnCount).Rows();
+                int startRow = orderedStarts[i];
+                int? endRow = orderedEnds.FirstOrDefault(x => x > startRow);
+                if (endRow is null || endRow.Value <= startRow)
+                {
+                    throw new InvalidOperationException($"No end row found after start row {startRow}. Ensure endRows contains a value greater than each start row.");
+                }
+
+                var rangeRows = worksheet.Range(startRow, 1, endRow.Value, columnCount).Rows();
+
+
                 segments.Add(rangeRows);
             }
+            stopwatch.Stop();
+            Console.WriteLine($"GetRowSegments executed in {stopwatch.ElapsedMilliseconds} ms.");
             return segments;
         }
 
         public static List<int> FindDigsiPathRows(IXLRangeRows rows, int lastColumn = 17, bool strictMatch = true)
         {
+            var stopwatch = Stopwatch.StartNew();
+            if (rows == null) throw new ArgumentNullException(nameof(rows));
+            if (lastColumn < 1) throw new ArgumentOutOfRangeException(nameof(lastColumn), "lastColumn must be at least 1.");
+
             var result = new List<int>();
 
             var cellBRegex = new Regex(@"^[\d\.]+(?:=>)?$");
 
+            string CleanCellB(string value) => Regex.Replace(value, @"\([^)]*\)", string.Empty)
+                .Replace(" ", string.Empty)
+                .Replace("\t", string.Empty);
+
+
             foreach (var row in rows)
             {
-                var cellB = row.Cell(2);
-                string cellBstring = Regex.Replace(cellB.GetString(), @"\([^)]*\)", string.Empty)
-                                                            .Replace(" ", string.Empty)
-                                                            .Replace("\t", string.Empty);
-
-                var cellD = row.Cell(4);
-                string cellDstring = cellD.GetString();
 
 
-                var cellL = row.Cell(12);
-                string cellLstring = cellL.GetString();
-
-
-                bool BisMatch = cellBRegex.IsMatch(cellBstring);
-                bool DHaveContent = !string.IsNullOrEmpty(cellDstring);
-                bool LisMatch = string.IsNullOrEmpty(cellLstring) || cellLstring.ToLower().Contains("setting group");
-
-                bool otherCellsAreEmpty = true;
-                for (int col = 1; col <= lastColumn; col++)
+                // Not match if cell D is empty.
+                var cellDstring = row.Cell(4).GetString();
+                if(cellDstring == "Group Line1, DISTV1, General")
                 {
-                    if (col == 2 || col == 4 || col == 12) continue;
-                    if (!string.IsNullOrWhiteSpace(row.Cell(col).GetString()))
-                    {
-                        otherCellsAreEmpty = false;
-                        break;
-                    }
+                    Console.WriteLine("debug");
                 }
 
-                if (!otherCellsAreEmpty)
+                if (string.IsNullOrEmpty(cellDstring))
                 {
                     continue;
                 }
 
-                if (BisMatch && DHaveContent && LisMatch)
+                // No match if cell H is not empty
+                if (!string.IsNullOrEmpty(row.Cell(8).GetString()))
                 {
-                    result.Add(row.RowNumber()); continue;
+                    continue;
                 }
 
-                if (!strictMatch && string.IsNullOrEmpty(cellBstring) && DHaveContent && LisMatch)
+                // No match if cell K is not empty
+                if (!string.IsNullOrEmpty(row.Cell(11).GetString()))
                 {
-                    result.Add(row.RowNumber()); continue;
+                    continue;
                 }
 
-                if (otherCellsAreEmpty && DHaveContent && (string.IsNullOrEmpty(cellBstring) || !BisMatch))
-                    throw new Exception("The digsi-path search function is not working reliably.");
-
-                if (otherCellsAreEmpty && DHaveContent && (string.IsNullOrEmpty(cellBstring) || !BisMatch) && !LisMatch)
+                // No match if cell L is not empty and does not contain the keyword
+                string cellLstring = row.Cell(12).GetString();
+                if (!string.IsNullOrEmpty(cellLstring))
                 {
-                    Console.WriteLine();
+                    if (!cellLstring.ToLowerInvariant().Contains("setting group")) // NB: May need additional key words!!!
+                    {
+                        continue;
+                    }
+                }
+
+                // No match if cell O is not empty and does not contain the keyword
+                string cellOstring = row.Cell(15).GetString();
+                if (!string.IsNullOrEmpty(cellOstring))
+                {
+                    if (!cellOstring.ToLowerInvariant().Contains("setting group")) // NB: May need additional key words!!!
+                    {
+                        continue;
+                    }
+                }
+
+                var cellBstring = CleanCellB(row.Cell(2).GetString());
+
+                if (cellBRegex.IsMatch(cellBstring))
+                {
+                    result.Add(row.RowNumber());
+                    continue;
                 }
 
             }
+
+            stopwatch.Stop();
+            Console.WriteLine($"FindDigsiPathRows executed in {stopwatch.ElapsedMilliseconds} ms.");
             return result;
         }
 
         public static List<int> FindUnusedRowSections(IXLWorksheet worksheet, int minConsecutive = 3)
         {
+            var stopwatch = Stopwatch.StartNew();
             var unusedSections = new List<int>();
             int consecutiveUnused = 0;
             int sectionStartRow = -1;
@@ -120,6 +159,8 @@ namespace RelayPlanDocumentModel
             if (consecutiveUnused >= minConsecutive)
                 unusedSections.Add(sectionStartRow);
 
+            stopwatch.Stop();
+            Console.WriteLine($"FindUnusedRowSections executed in {stopwatch.ElapsedMilliseconds} ms.");
             return unusedSections;
         }
     }
