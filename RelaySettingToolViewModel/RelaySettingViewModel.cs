@@ -37,7 +37,14 @@ namespace RelaySettingToolViewModel
         private bool _uniqueIdMatch;
         public bool UniqueIdMatch
         {
-            get => _uniqueIdMatch;
+            get
+            {
+                if (_uniqueIdMatch)
+                {
+                    Console.WriteLine("debug");
+                }
+                return _uniqueIdMatch;
+            }
             set
             {
                 if (_uniqueIdMatch != value)

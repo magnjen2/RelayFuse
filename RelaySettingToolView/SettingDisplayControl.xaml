@@ -17,29 +17,39 @@
         <SolidColorBrush x:Key="ComboBoxForeground" Color="#D4D4D4"/>
         <!-- Match Indicator Brushes -->
         <SolidColorBrush x:Key="MatchColor" Color="Green"/>
+        <SolidColorBrush x:Key="MatchBackground" Color="#2E7D32"/>
         <SolidColorBrush x:Key="NoMatchColor" Color="#D4D4D4"/>
         <!-- Styles for Match Indicators -->
         <Style x:Key="UniqueIdTextBoxStyle" TargetType="TextBox">
             <Setter Property="Foreground" Value="{StaticResource ComboBoxForeground}"/>
+            <Setter Property="Background" Value="{StaticResource ComboBoxBackground}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding UniqueIdMatch}" Value="True">
-                    <Setter Property="Foreground" Value="{StaticResource MatchColor}"/>
+                    <Setter Property="Background" Value="{StaticResource MatchBackground}"/>
+                    <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
         <Style x:Key="DisplayNameTextBoxStyle" TargetType="TextBox">
             <Setter Property="Foreground" Value="{StaticResource ComboBoxForeground}"/>
+            <Setter Property="Background" Value="{StaticResource ComboBoxBackground}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding DisplayNameMatch}" Value="True">
-                    <Setter Property="Foreground" Value="{StaticResource MatchColor}"/>
+                    <Setter Property="Background" Value="{StaticResource MatchBackground}"/>
+                    <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
         <Style x:Key="ValueTextBoxStyle" TargetType="TextBox">
             <Setter Property="Foreground" Value="{StaticResource ComboBoxForeground}"/>
+            <Setter Property="Background" Value="{StaticResource ComboBoxBackground}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding ValueMatch}" Value="True">
-                    <Setter Property="Foreground" Value="{StaticResource MatchColor}"/>
+                    <Setter Property="Background" Value="{StaticResource MatchBackground}"/>
+                    <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -53,11 +63,11 @@
         </Grid.ColumnDefinitions>
 
         <TextBox Grid.Column="0" Margin="2" Text="{Binding RelaySetting.UniqueId, Mode=OneWay}" IsReadOnly="True"
-                 Background="{StaticResource ComboBoxBackground}" Foreground="{StaticResource ComboBoxForeground}" BorderBrush="{StaticResource BorderBrush}" Style="{StaticResource UniqueIdTextBoxStyle}" />
+                 Style="{StaticResource UniqueIdTextBoxStyle}" />
         <TextBox Grid.Column="1" Margin="2" Text="{Binding RelaySetting.DisplayName, Mode=OneWay}" IsReadOnly="True"
-                 Background="{StaticResource ComboBoxBackground}" Foreground="{StaticResource ComboBoxForeground}" BorderBrush="{StaticResource BorderBrush}" Style="{StaticResource DisplayNameTextBoxStyle}" />
+                 Style="{StaticResource DisplayNameTextBoxStyle}" />
         <TextBox Grid.Column="2" Margin="2" Text="{Binding RelaySetting.SelectedValue, Mode=OneWay}" IsReadOnly="True"
-                 Background="{StaticResource ComboBoxBackground}" Foreground="{StaticResource ComboBoxForeground}" BorderBrush="{StaticResource BorderBrush}" Style="{StaticResource ValueTextBoxStyle}" />
+                 Style="{StaticResource ValueTextBoxStyle}" />
         <TextBox Grid.Column="3" Margin="2" Text="{Binding RelaySetting.Unit, Mode=OneWay}" IsReadOnly="True"
                  Background="{StaticResource ComboBoxBackground}" Foreground="{StaticResource ComboBoxForeground}" BorderBrush="{StaticResource BorderBrush}" />
     </Grid>
