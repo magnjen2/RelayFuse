@@ -8,13 +8,13 @@ namespace RelaySettingToolViewModel
 {
     public interface IHmiTableMergerViewModel
     {
-        IExcelHmiTable? ExcelHmiTable { get; set; }
-        ObservableCollection<IRelaySetting> NonMatchedSettings { get; }
+        IHmiTableViewModel? ExcelHmiTable { get; set; }
+        ObservableCollection<IRelaySettingViewModel> NonMatchedSettings { get; }
         ICollectionView NonMatchedSettingsView { get; }
         ICommand RefreshCommand { get; }
         ICommand AttachHmiTableCommand { get; }
         ObservableCollection<SettingMergerViewModel> SettingMergers { get; set; }
-        ITeaxHmiTable? TeaxHmiTable { get; set; }
+        IHmiTableViewModel? TeaxHmiTable { get; set; }
         int[] MatchConfidence { get; set; }
     }
 
@@ -26,12 +26,12 @@ namespace RelaySettingToolViewModel
             AttachHmiTableCommand = new RelayCommand(OnAttachHmiTable);
             InitializeCollections();
         }
-        public HmiTableMergerViewModel(ITeaxHmiTable teaxHmiTable) : this()
+        public HmiTableMergerViewModel(IHmiTableViewModel teaxHmiTable) : this()
         {
             TeaxHmiTable = teaxHmiTable;
-            foreach (var setting in teaxHmiTable.Settings)
+            foreach (var settingVM in teaxHmiTable.RelaySettingViewModels)
             {
-                SettingMergers.Add(new SettingMergerViewModel(setting));
+                SettingMergers.Add(new SettingMergerViewModel(settingVM));
             }
         }
 
@@ -41,8 +41,8 @@ namespace RelaySettingToolViewModel
         {
         }
 
-        private ITeaxHmiTable? _teaxHmiTable;
-        public ITeaxHmiTable? TeaxHmiTable
+        private IHmiTableViewModel? _teaxHmiTable;
+        public IHmiTableViewModel? TeaxHmiTable
         {
             get => _teaxHmiTable ?? null;
             set
@@ -51,8 +51,8 @@ namespace RelaySettingToolViewModel
                 OnPropertyChanged(nameof(TeaxHmiTable));
             }
         }
-        private IExcelHmiTable? _excelHmiTable;
-        public IExcelHmiTable? ExcelHmiTable
+        private IHmiTableViewModel? _excelHmiTable;
+        public IHmiTableViewModel? ExcelHmiTable
         {
             get => _excelHmiTable ?? null;
             set
@@ -68,7 +68,7 @@ namespace RelaySettingToolViewModel
 
         private void OnAttachHmiTable(object? parameter)
         {
-            if (parameter is IExcelHmiTable table)
+            if (parameter is IHmiTableViewModel table)
             {
                 ExcelHmiTable = table;
                 MatchTable();

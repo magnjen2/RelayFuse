@@ -16,6 +16,36 @@
         <DataTemplate x:Key="SettingDisplayViewTemplate">
             <local:SettingDisplayControl />
         </DataTemplate>
+
+        <Style x:Key="StretchListBoxItemStyle" TargetType="ListBoxItem">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="{TemplateBinding Padding}"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                              SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                                <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
 
     <Grid Background="{StaticResource WindowBackground}">
@@ -29,7 +59,7 @@
 
         <TextBlock Grid.Row="0"
                    Grid.Column="0"
-                   Text="{Binding DigsiPathString}"
+                   Text="{Binding HmiTable.DigsiPathString}"
                    VerticalAlignment="Center"
                    HorizontalAlignment="Left"
                    FontWeight="Bold"
@@ -38,14 +68,13 @@
 
         <ListBox Grid.Row="1"
                  Grid.Column="0"
-                 ItemsSource="{Binding Settings}"
+                 ItemsSource="{Binding RelaySettingViewModels}"
                  ItemTemplate="{StaticResource SettingDisplayViewTemplate}"
+                 ItemContainerStyle="{StaticResource StretchListBoxItemStyle}"
                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled"
                  Background="Transparent"
-                 BorderThickness="0"
-                 HorizontalContentAlignment="Stretch"
-                 VerticalContentAlignment="Stretch">
+                 BorderThickness="0">
             <ListBox.ItemsPanel>
                 <ItemsPanelTemplate>
                     <StackPanel Orientation="Vertical" />

@@ -11,15 +11,12 @@ namespace RelaySettingToolViewModel
 {
     public interface ISettingMergerViewModel
     {
-        IRelaySetting? ExcelRelaySetting { get; set; }
+        IRelaySettingViewModel? ExcelRelaySettingVM { get; set; }
         int MatchConfidence { get; set; }
         ICommand TakeRPDataCommand { get; }
         ICommand TakeTeaxDataCommand { get; }
         ICommand AttachSettingCommand { get; }
-        IRelaySetting? TeaxRelaySetting { get; set; }
-        bool UniqueIdMatch { get; set; }
-        bool DisplayNameMatch { get; set; }
-        bool ValueMatch { get; set; }
+        IRelaySettingViewModel? TeaxRelaySettingVM { get; set; }
 
     }
 
@@ -31,9 +28,9 @@ namespace RelaySettingToolViewModel
             TakeTeaxDataCommand = new RelayCommand(OnTakeTeaxData);
             AttachSettingCommand = new RelayCommand(OnAttachSetting);
         }
-        public SettingMergerViewModel(IRelaySetting teaxRelaySetting) : this()
+        public SettingMergerViewModel(IRelaySettingViewModel teaxRelaySetting) : this()
         {
-            TeaxRelaySetting = teaxRelaySetting;
+            TeaxRelaySettingVM = teaxRelaySetting;
         }
 
         public ICommand TakeRPDataCommand { get; }
@@ -52,75 +49,44 @@ namespace RelaySettingToolViewModel
 
         private void OnAttachSetting(object? parameter)
         {
-            if (parameter is IRelaySetting setting)
+            if (parameter is IRelaySettingViewModel setting)
             {
-                ExcelRelaySetting = setting;
+                ExcelRelaySettingVM = setting;
                 RunSettingMatch();
             }
         }
         private void RunSettingMatch()
         {
-            if (TeaxRelaySetting == null || ExcelRelaySetting == null)
+            if (TeaxRelaySettingVM == null || ExcelRelaySettingVM == null)
                 return;
 
-            CompareService.TryMatchSetting(this, ExcelRelaySetting);
-            ValueMatch = TeaxRelaySetting.SelectedValue == ExcelRelaySetting.SelectedValue;
+            CompareService.TryMatchSetting(this, ExcelRelaySettingVM);
         }
 
 
 
 
-        private IRelaySetting? _teaxRelaySetting;
-        public IRelaySetting? TeaxRelaySetting
+        private IRelaySettingViewModel? _teaxRelaySetting;
+        public IRelaySettingViewModel? TeaxRelaySettingVM
         {
             get => _teaxRelaySetting ?? null;
             set
             {
                 _teaxRelaySetting = value;
-                OnPropertyChanged(nameof(TeaxRelaySetting));
+                OnPropertyChanged(nameof(TeaxRelaySettingVM));
             }
         }
-        private IRelaySetting? _excelRelaySetting;
-        public IRelaySetting? ExcelRelaySetting
+        private IRelaySettingViewModel? _excelRelaySetting;
+        public IRelaySettingViewModel? ExcelRelaySettingVM
         {
             get => _excelRelaySetting ?? null;
             set
             {
                 _excelRelaySetting = value;
-                OnPropertyChanged(nameof(ExcelRelaySetting));
+                OnPropertyChanged(nameof(ExcelRelaySettingVM));
             }
         }
 
-        private bool _uniqueIdMatch = false;
-        public bool UniqueIdMatch
-        {
-            get => _uniqueIdMatch;
-            set
-            {
-                _uniqueIdMatch = value;
-                OnPropertyChanged(nameof(UniqueIdMatch));
-            }
-        }
-        private bool _displayNameMatch = false;
-        public bool DisplayNameMatch
-        {
-            get => _displayNameMatch;
-            set
-            {
-                _displayNameMatch = value;
-                OnPropertyChanged(nameof(DisplayNameMatch));
-            }
-        }
-        private bool _valueMatch = false;
-        public bool ValueMatch
-        {
-            get => _valueMatch;
-            set
-            {
-                _valueMatch = value;
-                OnPropertyChanged(nameof(ValueMatch));
-            }
-        }
 
         private int _matchConfidence;
         public int MatchConfidence

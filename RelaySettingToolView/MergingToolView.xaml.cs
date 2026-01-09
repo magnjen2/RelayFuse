@@ -39,9 +39,9 @@ namespace RelaySettingToolView
                 return;
 
             var data = GetDragItem(listBox, e.OriginalSource as DependencyObject);
-            if (data is IExcelHmiTable table)
+            if (data is IHmiTableViewModel table)
             {
-                DragDrop.DoDragDrop(listBox, new DataObject(typeof(IExcelHmiTable), table), DragDropEffects.Move);
+                DragDrop.DoDragDrop(listBox, new DataObject(typeof(IHmiTableViewModel), table), DragDropEffects.Move);
             }
         }
 

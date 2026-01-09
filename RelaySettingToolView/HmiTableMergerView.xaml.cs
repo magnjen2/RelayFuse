@@ -32,7 +32,7 @@ namespace RelaySettingToolView
 
         private void HmiTableMergerView_DragOver(object sender, DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(typeof(IExcelHmiTable)))
+            if (e.Data.GetDataPresent(typeof(IHmiTableViewModel)))
             {
                 e.Effects = DragDropEffects.Move;
             }
@@ -46,10 +46,10 @@ namespace RelaySettingToolView
 
         private void HmiTableMergerView_Drop(object sender, DragEventArgs e)
         {
-            if (!e.Data.GetDataPresent(typeof(IExcelHmiTable)))
+            if (!e.Data.GetDataPresent(typeof(IHmiTableViewModel)))
                 return;
 
-            var table = e.Data.GetData(typeof(IExcelHmiTable)) as IExcelHmiTable;
+            var table = e.Data.GetData(typeof(IHmiTableViewModel)) as IHmiTableViewModel;
             if (table == null)
                 return;
 
@@ -83,9 +83,9 @@ namespace RelaySettingToolView
                 return;
 
             var data = GetDragItem(listBox, e.OriginalSource as DependencyObject);
-            if (data is IRelaySetting setting)
+            if (data is IRelaySettingViewModel setting)
             {
-                DragDrop.DoDragDrop(listBox, new DataObject(typeof(IRelaySetting), setting), DragDropEffects.Move);
+                DragDrop.DoDragDrop(listBox, new DataObject(typeof(IRelaySettingViewModel), setting), DragDropEffects.Move);
             }
         }
 

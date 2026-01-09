@@ -52,12 +52,12 @@ namespace RelaySettingToolViewModel
             return result;
         }
 
-        public static int[] TryMatchTable(IHmiTableMergerViewModel hmiTableMerger, IHmiTable rpHmiTable)
+        public static int[] TryMatchTable(IHmiTableMergerViewModel hmiTableMerger, IHmiTableViewModel excelHmiTableVM)
         {
             int[] matchConfidence = new int[2] { 0, 0 };
 
-            var digsiPathTeax = hmiTableMerger.TeaxHmiTable!.DigsiPathString;
-            var rpDigsiPath = rpHmiTable.DigsiPathString;
+            var digsiPathTeax = hmiTableMerger.TeaxHmiTable!.HmiTable.DigsiPathString;
+            var rpDigsiPath = excelHmiTableVM.HmiTable.DigsiPathString;
 
             if (digsiPathTeax == null || digsiPathTeax.Length == 0 || rpDigsiPath == null || rpDigsiPath.Length == 0)
                 return matchConfidence;
@@ -72,7 +72,7 @@ namespace RelaySettingToolViewModel
             {
                 matchConfidence[0] = 1; // Matching digsi path is indicated
 
-                MatchAllSettings(hmiTableMerger, rpHmiTable, matchConfidence);
+                MatchAllSettings(hmiTableMerger, excelHmiTableVM, matchConfidence);
             }
 
             return matchConfidence;
@@ -80,13 +80,13 @@ namespace RelaySettingToolViewModel
         }
 
 
-        public static void MatchAllSettings(IHmiTableMergerViewModel hmiTableMerger, IHmiTable rpHmiTable, int[] matchConfidence)
+        public static void MatchAllSettings(IHmiTableMergerViewModel hmiTableMerger, IHmiTableViewModel excelHmiTableVM, int[] matchConfidence)
         {
             foreach (var settingMerger1 in hmiTableMerger.SettingMergers)
             {
-                foreach (var setting2 in rpHmiTable.Settings)
+                foreach (var settingVM in excelHmiTableVM.RelaySettingViewModels)
                 {
-                    var settingMatch = TryMatchSetting(settingMerger1, setting2); // Trying to match settings within the hmi tables
+                    var settingMatch = TryMatchSetting(settingMerger1, settingVM); // Trying to match settings within the hmi tables
 
                     matchConfidence[1] += settingMatch; // Increasing match confidence based on settings matched
                 }
@@ -94,19 +94,23 @@ namespace RelaySettingToolViewModel
         }
 
 
-        public static int TryMatchSetting(ISettingMergerViewModel settingMerger, IRelaySetting setting2)
+        public static int TryMatchSetting(ISettingMergerViewModel settingMergerVM, IRelaySettingViewModel excelSettingVM)
         {
-            var setting1 = settingMerger.TeaxRelaySetting!;
+            IRelaySettingViewModel teaxSettingVM = settingMergerVM.TeaxRelaySettingVM!;
+            IRelaySetting teaxRelaySetting = teaxSettingVM.RelaySetting;
+            IRelaySetting excelRelaySetting = excelSettingVM.RelaySetting;
+
             int score = 0;
 
-            var uniqueIdMatch = MatchVisibleUniqueId(setting1.UniqueId, setting2.UniqueId);
+            (bool isMatch, bool isExact) uniqueIdMatch = MatchVisibleUniqueId(teaxRelaySetting.UniqueId, excelRelaySetting.UniqueId);
 
-            var nameMatch = MatchString(setting1.DisplayName, setting2.DisplayName);
+            (bool isMatch, bool isExact) nameMatch = MatchString(teaxRelaySetting.DisplayName, excelRelaySetting.DisplayName);
+
+            (bool isMatch, bool isExact) valueMatch = (false, false);
 
             if (uniqueIdMatch.isExact)
             {
                 score += 2; // UniqueId match is strong indicator
-                settingMerger.UniqueIdMatch = true;
             }
             else if (uniqueIdMatch.isMatch)
             {
@@ -116,7 +120,6 @@ namespace RelaySettingToolViewModel
             if (nameMatch.isExact)
             {
                 score += 2; // Name match is strong indicator
-                settingMerger.DisplayNameMatch = true;
             }
             else if (nameMatch.isMatch)
             {
@@ -125,9 +128,19 @@ namespace RelaySettingToolViewModel
 
             if (score > 1)
             {
-                settingMerger.ExcelRelaySetting = setting2;
-                settingMerger.MatchConfidence = score;
+                settingMergerVM.ExcelRelaySettingVM = excelSettingVM;
+                settingMergerVM.MatchConfidence = score;
+
+                valueMatch = MatchString(teaxRelaySetting.SelectedValue, excelRelaySetting.SelectedValue);
+
+                teaxSettingVM.UniqueIdMatch = uniqueIdMatch.isExact;
+                teaxSettingVM.DisplayNameMatch = nameMatch.isExact;
+                teaxSettingVM.ValueMatch = valueMatch.isExact;
+                excelSettingVM.UniqueIdMatch = uniqueIdMatch.isExact;
+                excelSettingVM.DisplayNameMatch = nameMatch.isExact;
+                excelSettingVM.ValueMatch = valueMatch.isExact;
             }
+
             return score;
         }
 

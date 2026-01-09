@@ -38,7 +38,7 @@
 
         <!-- Left Settings: TeaxRelaySetting -->
         <local:SettingDisplayControl Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="4"
-                                     DataContext="{Binding TeaxRelaySetting}" />
+                                     DataContext="{Binding TeaxRelaySettingVM}" />
 
         <!-- 2 Buttons -->
         <Button Grid.Column="4" Grid.Row="0" Margin="2" Content="→"  Command="{Binding TakeTeaxDataCommand}"
@@ -48,6 +48,6 @@
 
         <!-- Right Settings: ExcelRelaySetting -->
         <local:SettingDisplayControl Grid.Column="6" Grid.Row="0" Grid.ColumnSpan="4"
-                                     DataContext="{Binding ExcelRelaySetting}" />
+                                     DataContext="{Binding ExcelRelaySettingVM}" />
     </Grid>
 </UserControl>

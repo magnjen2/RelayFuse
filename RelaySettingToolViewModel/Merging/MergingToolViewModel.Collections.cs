@@ -14,14 +14,14 @@ public partial class MergingToolViewModel
     private ObservableCollection<IHmiTableMergerViewModel> _hmiTableMergers = new();
 
     // Collection of all RP HMI tables
-    private readonly ObservableCollection<IExcelHmiTable> _rpHmiTables = new();
+    private readonly ObservableCollection<IHmiTableViewModel> _excelHmiTableVMs = new();
 
     // Filtered collection for displaying non matched RP HMI tables.
     private readonly ICollectionView _nonMatchedHmiTablesView;
 
     public ICollectionView NonMatchedHmiTables => _nonMatchedHmiTablesView;
 
-    public IEnumerable<IExcelHmiTable> GetUnmatchedHmiTables() => _rpHmiTables.Where(t => !IsTableAssigned(t));
+    public IEnumerable<IHmiTableViewModel> GetUnmatchedHmiTables() => _excelHmiTableVMs.Where(t => !IsTableAssigned(t));
 
     public ObservableCollection<IHmiTableMergerViewModel> HmiTableMergers
     {
@@ -78,13 +78,13 @@ public partial class MergingToolViewModel
     // Filter used by the UI CollectionView so only unassigned tables are shown.
     private bool FilterNonMatchedTable(object obj)
     {
-        if (obj is not IExcelHmiTable table)
+        if (obj is not IHmiTableViewModel table)
             return false;
 
         return !IsTableAssigned(table);
     }
 
-    private bool IsTableAssigned(IExcelHmiTable table)
+    private bool IsTableAssigned(IHmiTableViewModel table)
     {
         foreach (var merger in _hmiTableMergers)
         {

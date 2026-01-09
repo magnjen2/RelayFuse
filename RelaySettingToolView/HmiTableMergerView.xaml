@@ -18,6 +18,36 @@
         <SolidColorBrush x:Key="TextBrush" Color="#D4D4D4" />
         <SolidColorBrush x:Key="ComboBoxBackground" Color="#252526" />
         <SolidColorBrush x:Key="ComboBoxForeground" Color="#D4D4D4" />
+
+        <Style x:Key="StretchListBoxItemStyle" TargetType="ListBoxItem">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="{TemplateBinding Padding}"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                              SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                                <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
     
     
@@ -34,22 +64,21 @@
         </Grid.ColumnDefinitions>
 
         <!-- Titles -->
-        <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding TeaxHmiTable.DigsiPathString}" 
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding TeaxHmiTable.HmiTable.DigsiPathString}" 
                    VerticalAlignment="Center" HorizontalAlignment="Left" FontWeight="Bold" Margin="8,8,0,8"
                    Foreground="{StaticResource TextBrush}"/>
-        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ExcelHmiTable.DigsiPathString}" 
+        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ExcelHmiTable.HmiTable.DigsiPathString}" 
                    VerticalAlignment="Center" HorizontalAlignment="Right" FontWeight="Bold" Margin="0,8,8,8"
                    Foreground="{StaticResource TextBrush}"/>
 
         <!-- SettingMergers List (Horizontal) -->
         <ListBox Grid.Row="1" Grid.ColumnSpan="2"
                  ItemsSource="{Binding SettingMergers}"
+                 ItemContainerStyle="{StaticResource StretchListBoxItemStyle}"
                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled"
                  Background="Transparent"
-                 BorderThickness="0"
-                 HorizontalContentAlignment="Stretch"
-                 VerticalContentAlignment="Stretch">
+                 BorderThickness="0">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <local:SettingMergerView />
@@ -65,12 +94,11 @@
         <!-- NonMatchedSettings List (Bottom, right half) -->
         <ListBox Grid.Row="2" Grid.Column="1"
                  ItemsSource="{Binding NonMatchedSettings}"
+                 ItemContainerStyle="{StaticResource StretchListBoxItemStyle}"
                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled"
                  Background="Transparent"
                  BorderThickness="0"
-                 HorizontalContentAlignment="Stretch"
-                 VerticalContentAlignment="Stretch"
                  PreviewMouseLeftButtonDown="NonMatchedSettings_PreviewMouseLeftButtonDown"
                  PreviewMouseMove="NonMatchedSettings_PreviewMouseMove">
             <ListBox.ItemTemplate>
@@ -87,6 +115,5 @@
 
 
 
-        
     </Grid>
 </UserControl>

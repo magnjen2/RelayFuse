@@ -10,7 +10,6 @@ namespace RelaySettingToolViewModel
     public interface IRelaySettingViewModel
     {
         IRelaySetting RelaySetting { get; set; }
-
         bool UniqueIdMatch { get; set; }
         bool DisplayNameMatch { get; set; }
         bool ValueMatch { get; set; }

@@ -13,7 +13,7 @@ namespace RelaySettingToolViewModel;
 public partial class HmiTableMergerViewModel
 {
     private ObservableCollection<SettingMergerViewModel> _settingMergers = new();
-    private ObservableCollection<IRelaySetting> _nonMatchedSettings = new();
+    private ObservableCollection<IRelaySettingViewModel> _nonMatchedSettings = new();
     private ICollectionView _nonMatchedSettingsView = null!;
 
     public ObservableCollection<SettingMergerViewModel> SettingMergers
@@ -46,7 +46,7 @@ public partial class HmiTableMergerViewModel
         }
     }
 
-    public ObservableCollection<IRelaySetting> NonMatchedSettings => _nonMatchedSettings;
+    public ObservableCollection<IRelaySettingViewModel> NonMatchedSettings => _nonMatchedSettings;
 
     public ICollectionView NonMatchedSettingsView => _nonMatchedSettingsView;
 
@@ -113,7 +113,7 @@ public partial class HmiTableMergerViewModel
 
     private void SettingMergerPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(SettingMergerViewModel.ExcelRelaySetting))
+        if (e.PropertyName == nameof(SettingMergerViewModel.ExcelRelaySettingVM))
         {
             RecalculateNonMatchedSettings();
             RefreshNonMatchedSettingsView();
@@ -122,17 +122,17 @@ public partial class HmiTableMergerViewModel
 
     private bool FilterNonMatchedSetting(object obj)
     {
-        if (obj is not IRelaySetting setting)
+        if (obj is not IRelaySettingViewModel setting)
             return false;
 
         return !IsSettingAssigned(setting);
     }
 
-    private bool IsSettingAssigned(IRelaySetting setting)
+    private bool IsSettingAssigned(IRelaySettingViewModel setting)
     {
         foreach (var merger in _settingMergers)
         {
-            if (ReferenceEquals(merger.ExcelRelaySetting, setting))
+            if (ReferenceEquals(merger.ExcelRelaySettingVM, setting))
             {
                 return true;
             }
@@ -143,9 +143,9 @@ public partial class HmiTableMergerViewModel
 
     private void RecalculateNonMatchedSettings()
     {
-        var excelSettings = _excelHmiTable?.Settings ?? Enumerable.Empty<IRelaySetting>();
+        var excelSettings = _excelHmiTable?.RelaySettingViewModels ?? Enumerable.Empty<IRelaySettingViewModel>();
 
-        var desired = new HashSet<IRelaySetting>(
+        var desired = new HashSet<IRelaySettingViewModel>(
             excelSettings.Where(setting => !IsSettingAssigned(setting)),
             ReferenceEqualityComparer.Instance);
 

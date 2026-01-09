@@ -20,6 +20,35 @@
         <DataTemplate x:Key="NonMatchedHmiTableViewTemplate">
             <views:NonMatchedHmiTableView />
         </DataTemplate>
+        <Style x:Key="StretchListBoxItemStyle" TargetType="ListBoxItem">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="{TemplateBinding Padding}"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                              SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                                <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
     
     
@@ -38,10 +67,9 @@
                 Background="{StaticResource WindowBackground}">
             <ListBox ItemsSource="{Binding HmiTableMergers}"
                      ItemTemplate="{StaticResource HmiTableMergerViewTemplate}"
+                     ItemContainerStyle="{StaticResource StretchListBoxItemStyle}"
                      Background="Transparent"
-                     BorderThickness="0"
-                     HorizontalContentAlignment="Stretch"
-                     VerticalContentAlignment="Stretch">
+                     BorderThickness="0">
             </ListBox>
         </Border>
 
@@ -90,12 +118,11 @@
 
             <ListBox ItemsSource="{Binding NonMatchedHmiTables}"
                      ItemTemplate="{StaticResource NonMatchedHmiTableViewTemplate}"
+                     ItemContainerStyle="{StaticResource StretchListBoxItemStyle}"
                      PreviewMouseLeftButtonDown="NonMatchedListBox_PreviewMouseLeftButtonDown"
                      PreviewMouseMove="NonMatchedListBox_PreviewMouseMove"
                      Background="Transparent"
-                     BorderThickness="0"
-                     HorizontalContentAlignment="Stretch"
-                     VerticalContentAlignment="Stretch">
+                     BorderThickness="0">
             </ListBox>
 
         </Border>

@@ -31,4 +31,10 @@
             </Trigger>
         </Style.Triggers>
     </Style>
+
+    <!-- Global ListBoxItem style to avoid ancestor-based alignment bindings -->
+    <Style TargetType="ListBoxItem">
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Stretch" />
+    </Style>
 </ResourceDictionary>

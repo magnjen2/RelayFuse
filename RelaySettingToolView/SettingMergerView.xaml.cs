@@ -29,7 +29,7 @@ namespace RelaySettingToolView
 
         private void SettingMergerView_DragOver(object sender, DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(typeof(IRelaySetting)))
+            if (e.Data.GetDataPresent(typeof(IRelaySettingViewModel)))
             {
                 e.Effects = DragDropEffects.Move;
             }
@@ -43,10 +43,10 @@ namespace RelaySettingToolView
 
         private void SettingMergerView_Drop(object sender, DragEventArgs e)
         {
-            if (!e.Data.GetDataPresent(typeof(IRelaySetting)))
+            if (!e.Data.GetDataPresent(typeof(IRelaySettingViewModel)))
                 return;
 
-            var setting = e.Data.GetData(typeof(IRelaySetting)) as IRelaySetting;
+            var setting = e.Data.GetData(typeof(IRelaySettingViewModel)) as IRelaySettingViewModel;
             if (setting == null)
                 return;
 

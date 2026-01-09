@@ -17,7 +17,7 @@ namespace RelaySettingToolViewModel
         ICollectionView NonMatchedHmiTables { get; }
         ICommand StartCompareCommand { get; }
 
-        IEnumerable<IExcelHmiTable> GetUnmatchedHmiTables();
+        IEnumerable<IHmiTableViewModel> GetUnmatchedHmiTables();
         void InitializeRP(IExcelDevice deviceInExcel);
         void InitializeTeax(IApplicationNode applicationNode);
     }
@@ -28,7 +28,7 @@ namespace RelaySettingToolViewModel
         {
             // Initialize collection hooks and expose the filtered view used by the UI.
             _hmiTableMergers.CollectionChanged += HmiTableMergersCollectionChanged;
-            _nonMatchedHmiTablesView = CollectionViewSource.GetDefaultView(_rpHmiTables);
+            _nonMatchedHmiTablesView = CollectionViewSource.GetDefaultView(_excelHmiTableVMs);
             _nonMatchedHmiTablesView.Filter = FilterNonMatchedTable;
         }
 
@@ -37,11 +37,11 @@ namespace RelaySettingToolViewModel
         {
             _applicationNode = applicationNode;
             _teaxRelayFuseService = new TeaxRelayFuseService(applicationNode.FunctionalApplication);
-            List<ITeaxHmiTable> teaxHmiTables = _teaxRelayFuseService.GetHmiTables();
 
-            foreach (var hmiTable in teaxHmiTables)
+            foreach (var teaxHmiTable in _teaxRelayFuseService.GetHmiTables())
             {
-                HmiTableMergers.Add(new HmiTableMergerViewModel(hmiTable));
+                var teaxHmiTableVM = new HmiTableViewModel(teaxHmiTable);
+                HmiTableMergers.Add(new HmiTableMergerViewModel(teaxHmiTableVM));
             }
             _teaxOK = true;
         }
@@ -50,10 +50,11 @@ namespace RelaySettingToolViewModel
         public void InitializeRP(IExcelDevice deviceInExcel)
         {
             _selectedDevice = deviceInExcel;
-            _rpHmiTables.Clear();
+            _excelHmiTableVMs.Clear();
             foreach (var table in _selectedDevice!.SettingPages.SelectMany(x => x.HmiTableSections!))
             {
-                _rpHmiTables.Add(table);
+                var excelHmiTableVM = new HmiTableViewModel(table);
+                _excelHmiTableVMs.Add(excelHmiTableVM);
             }
             RefreshNonMatchedView();
             _rpOK = true;
